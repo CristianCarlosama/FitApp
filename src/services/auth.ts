@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api'; 
+// Cambia la línea manual por la variable de entorno
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api"; 
 
 export const register = async (name: string, email: string, password: string) => {
   const res = await axios.post(

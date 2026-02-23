@@ -6,6 +6,7 @@ import Input from '../../components/Inputs';
 import Modal from '../../components/Modal'; // Usando el componente reutilizable
 import { FaUserPlus } from 'react-icons/fa';
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -53,7 +54,7 @@ const RegisterModal: React.FC<Props> = ({ isOpen, onClose }) => {
     };
 
     try {
-      const res = await axios.post('http://localhost:8000/api/register', payload);
+      const res = await axios.post(`${API_URL}/register`, payload);
       console.log('Usuario registrado:', res.data);
       alert('Usuario registrado con éxito');
       onClose();
