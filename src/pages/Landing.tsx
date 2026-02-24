@@ -257,8 +257,24 @@ const Landing: React.FC = () => {
           <button onClick={() => setSidebarOpen(true)} className="p-2 bg-white/5 rounded-lg">
             <FaBars className="text-md" />
           </button>
-          <Text size="lg" weight="bold">FITAPP</Text>
-          <img src={logo} alt="Logo FITAPP" className="w-8 h-8 rounded-full" />
+          <button
+            onClick={() => setActiveView("landing")}
+            className="cursor-pointer"
+          >
+            <Text 
+              size="lg" 
+              weight="bold"
+            >
+              FITAPP
+            </Text>
+          </button>
+
+          <img 
+            src={logo} 
+            alt="Logo FITAPP" 
+            className="w-8 h-8 rounded-full cursor-pointer"
+            onClick={() => setActiveView("landing")}
+          />
         </header>
 
         {/* CONTENEDOR DE TARJETAS */}
