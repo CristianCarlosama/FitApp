@@ -3,6 +3,8 @@ import logo from '../assets/AresGymFT.png'
 import RegisterModal from './modales/RegisterModal';
 import LoginModal from './modales/LoginModal';
 import EjerciciosView from './Ejercicios/EjerciciosView';
+import TemporizadorView from './Temporizador/TemporizadorView';
+import CronometroView from './Cronometro/CronometroView';
 import Button from '../components/Buttons';
 import Text from '../components/Texts';
 import Card from '../components/Cards';
@@ -11,6 +13,19 @@ import {
   FaRuler, FaCommentDots, FaMapMarkedAlt, FaBars, FaTimes,
   FaUserCircle, FaCog, FaLifeRing, FaSignOutAlt, FaImages 
 } from 'react-icons/fa';
+import RutinasView from './Rutinas/RutinasView';
+
+type ViewType =
+  | "landing"
+  | "cronometro"
+  | "temporizador"
+  | "ejercicios"
+  | "rutinas"
+  | "metas"
+  | "mapa"
+  | "medidas"
+  | "comentarios"
+  | "fotos";
 
 const Landing: React.FC = () => {
   const [showRegister, setShowRegister] = useState(false);
@@ -19,7 +34,59 @@ const Landing: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // 👇 Estado para controlar qué se ve en el contenido principal
-  const [activeView, setActiveView] = useState<"landing" | "ejercicios">("landing");
+  const [activeView, setActiveView] = useState<ViewType>(() => {
+    return (localStorage.getItem("activeView") as ViewType) || "landing";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("activeView", activeView);
+  }, [activeView]);
+
+  const renderView = () => {
+    switch (activeView) {
+      case "ejercicios":
+        return <EjerciciosView 
+          goBack={() => setActiveView("landing")}
+        />;
+
+      case "cronometro":
+        return <CronometroView 
+          goBack={() => setActiveView("landing")}
+        />;
+
+      case "temporizador":
+        return <TemporizadorView 
+          goBack={() => setActiveView("landing")}
+        />;
+
+      case "rutinas":
+        return <RutinasView 
+          goBack={() => setActiveView("landing")}
+        />;
+
+      case "metas":
+        return <div className="p-10">Vista Metas</div>;
+
+      case "mapa":
+        return <div className="p-10">Vista Mapa</div>;
+
+      case "medidas":
+        return <div className="p-10">Vista Medidas</div>;
+
+      case "comentarios":
+        return <div className="p-10">Vista Comentarios</div>;
+
+      case "fotos":
+        return <div className="p-10">Vista Fotos</div>;
+
+      default:
+        return (
+          <div className="p-6 md:p-10 w-full max-w-none mx-auto space-y-12 pb-[50px]">
+            {/* aquí va TODO tu contenido actual del landing */}
+          </div>
+        );
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -32,15 +99,50 @@ const Landing: React.FC = () => {
   };
 
   const cards = [
-    { title: 'Cronómetro', icon: <FaStopwatch className="text-purple-400" />, description: 'Mide tus tiempos.' },
-    { title: 'Temporizador', icon: <FaClock className="text-blue-400" />, description: 'Sesiones de descanso.' },
-    { title: 'Ejercicios', icon: <FaDumbbell className="text-green-400" />, description: 'Explora rutinas.' },
-    { title: 'Rutinas', icon: <FaTasks className="text-orange-400" />, description: 'Tus planes diarios.' },
-    { title: 'Metas', icon: <FaBullseye className="text-red-400" />, description: 'Objetivos claros.' },
-    { title: 'Mapa', icon: <FaMapMarkedAlt className="text-cyan-400" />, description: 'Rutas cercanas.' },
-    { title: 'Medidas', icon: <FaRuler className="text-emerald-400" />, description: 'Medidas Corporales.' },
-    { title: 'Comentarios', icon: <FaCommentDots className="text-yellow-400" />, description: 'Motívate tú mismo.' },
-    { title: 'Fotos', icon: <FaImages className="text-pink-400" />, description: 'Sigue tu progreso.' },
+    { title: 'Cronómetro', 
+      view: 'cronometro',
+      icon: <FaStopwatch className="text-purple-400" />, 
+      description: 'Mide tus tiempos.' 
+    },
+    { title: 'Temporizador', 
+      view: 'temporizador',
+      icon: <FaClock className="text-blue-400" />, 
+      description: 'Sesiones de descanso.' 
+    },
+    { title: 'Ejercicios', 
+      view: 'ejercicios',
+      icon: <FaDumbbell className="text-green-400" />, 
+      description: 'Explora rutinas.' 
+    },
+    { title: 'Rutinas', 
+      view: 'rutinas',
+      icon: <FaTasks className="text-orange-400" />, 
+      description: 'Tus planes diarios.' 
+    },
+    { title: 'Metas', 
+      view: 'metas',
+      icon: <FaBullseye className="text-red-400" />, 
+      description: 'Objetivos claros.'
+    },
+    { title: 'Mapa',
+      view: 'mapa',
+      icon: <FaMapMarkedAlt className="text-cyan-400" />, 
+      description: 'Rutas cercanas.' 
+    },
+    { title: 'Medidas', 
+      view: 'medidas',
+      icon: <FaRuler className="text-emerald-400" />, 
+      description: 'Medidas Corporales.' 
+    },
+    { title: 'Comentarios', 
+      view: 'comentarios',
+      icon: <FaCommentDots className="text-yellow-400" />, 
+      description: 'Motívate tú mismo.' },
+    { title: 'Fotos', 
+      view: 'fotos',
+      icon: <FaImages className="text-pink-400" />, 
+      description: 'Sigue tu progreso.' 
+    },
   ];
 
   return (
@@ -125,19 +227,19 @@ const Landing: React.FC = () => {
                     title={card.title}
                     description={card.description}
                     icon={<span className="text-3xl mb-2 block">{card.icon}</span>}
-                    onClick={() => {
-                      if(card.title === "Ejercicios") setActiveView("ejercicios");
-                    }}
+                    onClick={() => 
+                      setActiveView(card.view as ViewType
+                      )}
                   />
                 ))}
               </div>
             </section>
 
-            {/* ESTE ES EL TRUCO: Un div invisible que empuja todo hacia arriba */}
+            {/* div invisible que empuja todo hacia arriba */}
             <div className="h-5 w-full pointer-events-none"></div>
           </div>
           ) : (
-          <EjerciciosView />
+            renderView()
         )}
 
         {/* PUBLICIDAD FIJA ABAJO */}

@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { getEjercicios } from "../../services/ejercicios";
 import Text from "../../components/Texts";
-import { FaDumbbell, FaPlay, FaFireAlt, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaDumbbell, FaPlay, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-// --- COMPONENTE CAROUSEL REUTILIZABLE (MEJORADO) ---
+// --- COMPONENTE CAROUSEL REUTILIZABLE ---
 const Carousel: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -57,7 +57,12 @@ interface Ejercicio {
 
 const clases = ["Pierna", "Pecho", "Espalda", "Hombros", "Brazos", "Pantorrilla", "Abdomen"];
 
-const EjerciciosView: React.FC = () => {
+
+interface EjerciciosViewProps {
+  goBack: () => void;
+}
+
+const EjerciciosView: React.FC<EjerciciosViewProps> = ({ goBack }) => {
   const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);
   const [selectedClase, setSelectedClase] = useState<string | null>(null);
 
@@ -79,18 +84,27 @@ const EjerciciosView: React.FC = () => {
       
       <header className="sticky top-0 z-50 bg-[#0f111a]/95 backdrop-blur-xl border-b border-white/5 p-4 md:p-6">
         <div className="max-w-[1400px] mx-auto flex flex-col gap-6">
+          
+          {/* TÍTULO QUE FUNCIONA COMO BOTÓN VOLVER */}
           <div className="flex items-center gap-3">
-            <FaFireAlt className="text-purple-500 text-2xl md:text-3xl" />
-            <div className="flex flex-col">
-              <Text size="2xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none">
-                FITAPP
-              </Text>
-              <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase">
-                {selectedClase ? selectedClase : "Biblioteca"}
-              </Text>
-            </div>
+            <button 
+              onClick={goBack}
+              className="group flex items-center gap-3 hover:opacity-80 transition-all active:scale-95"
+            >
+              <FaChevronLeft className="text-purple-500 text-xl md:text-2xl group-hover:-translate-x-1 transition-transform" />
+              
+              <div className="flex flex-col items-start">
+                <Text size="2xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none">
+                  FITAPP
+                </Text>
+                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase">
+                  {selectedClase ? selectedClase : "Biblioteca"}
+                </Text>
+              </div>
+            </button>
           </div>
 
+          {/* Carrusel de Categorías */}
           <Carousel>
             <button
               onClick={() => setSelectedClase(null)}
