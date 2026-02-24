@@ -65,19 +65,74 @@ const Landing: React.FC = () => {
         />;
 
       case "metas":
-        return <div className="p-10">Vista Metas</div>;
+        return (
+            <div className="p-10 space-y-4">
+              <button
+                onClick={() => setActiveView("landing")}
+                className="text-gray-400 hover:text-white transition"
+              >
+                ← Volver
+              </button>
+
+              <div>Vista Metas</div>
+            </div>
+          );
 
       case "mapa":
-        return <div className="p-10">Vista Mapa</div>;
+        return (
+            <div className="p-10 space-y-4">
+              <button
+                onClick={() => setActiveView("landing")}
+                className="text-gray-400 hover:text-white transition"
+              >
+                ← Volver
+              </button>
+
+              <div>Vista Mapa</div>
+            </div>
+          );
 
       case "medidas":
-        return <div className="p-10">Vista Medidas</div>;
+        return (
+            <div className="p-10 space-y-4">
+              <button
+                onClick={() => setActiveView("landing")}
+                className="text-gray-400 hover:text-white transition"
+              >
+                ← Volver
+              </button>
+
+              <div>Vista Medidas</div>
+            </div>
+          );
 
       case "comentarios":
-        return <div className="p-10">Vista Comentarios</div>;
+        return (
+            <div className="p-10 space-y-4">
+              <button
+                onClick={() => setActiveView("landing")}
+                className="text-gray-400 hover:text-white transition"
+              >
+                ← Volver
+              </button>
+
+              <div>Vista Comentarios</div>
+            </div>
+          );
 
       case "fotos":
-        return <div className="p-10">Vista Fotos</div>;
+        return (
+            <div className="p-10 space-y-4">
+              <button
+                onClick={() => setActiveView("landing")}
+                className="text-gray-400 hover:text-white transition"
+              >
+                ← Volver
+              </button>
+
+              <div>Vista Fotos</div>
+            </div>
+          );
 
       default:
         return (
