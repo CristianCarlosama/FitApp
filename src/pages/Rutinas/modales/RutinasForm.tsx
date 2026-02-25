@@ -26,7 +26,18 @@ const RutinaForm: React.FC<Props> = ({
       setDescripcion(rutina.descripcion || "");
       setDificultad(rutina.dificultad || "");
       setDuracion(rutina.duracion || "");
-      setEjercicios(rutina.ejercicios || []);
+      
+      setEjercicios(
+        (rutina.ejercicios || []).map((ej: any) => ({
+          ...ej,
+          // Usamos 'id' si viene directo, o 'ejercicio_id' si viene de la pivote
+          // pero lo guardamos siempre como 'id' para no confundirnos
+          id: ej.id || ej.ejercicio_id, 
+          series: ej.series || 3,
+          repeticiones: ej.repeticiones || 10,
+          descanso: ej.descanso || 60,
+        }))
+      );
     }
   }, [rutina]);
 
@@ -35,13 +46,14 @@ const RutinaForm: React.FC<Props> = ({
   };
 
   const handleSelectEjercicio = (ej: any) => {
+    // Ahora comparamos siempre contra .id
+    if (ejercicios.some(e => e.id === ej.id)) return; 
+
     setEjercicios([
       ...ejercicios,
       {
-        ejercicio_id: ej.id,
-        nombre: ej.nombre,
-        imagen_url: ej.imagen_url,
-        descripcion: ej.descripcion,
+        ...ej, // trae nombre, imagen_url, etc.
+        id: ej.id, 
         series: 3,
         repeticiones: 10,
         descanso: 60,
@@ -62,8 +74,13 @@ const RutinaForm: React.FC<Props> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (ejercicios.length === 0) {
-      alert("Debes agregar al menos un ejercicio");
+    // Limpieza de IDs: filtramos cualquier undefined o null
+    const idsFinales = ejercicios
+      .map(ej => ej.id || ej.ejercicio_id)
+      .filter(id => id !== undefined && id !== null);
+
+    if (idsFinales.length === 0) {
+      alert("Debes agregar al menos un ejercicio válido");
       return;
     }
 
@@ -72,17 +89,23 @@ const RutinaForm: React.FC<Props> = ({
       descripcion,
       dificultad,
       duracion,
-      ejercicios: ejercicios.map((ej) => ej.ejercicio_id),
+      ejercicios: idsFinales, // Mandamos el array de IDs puros
     };
 
-    if (rutina) {
-      await updateRutina(rutina.id, data);
-    } else {
-      await createRutina(data);
-    }
+    console.log("Datos que van al backend:", data); // Agrega este log para estar seguro
 
-    onSuccess();
-    onClose();
+    try {
+      if (rutina) {
+        await updateRutina(rutina.id, data);
+      } else {
+        await createRutina(data);
+      }
+      onSuccess();
+      onClose();
+    } catch (err) {
+      console.error(err);
+      alert("Ocurrió un error al guardar");
+    }
   };
 
   return (
