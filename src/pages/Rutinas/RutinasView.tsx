@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import Text from "../../components/Texts";
-import RutinaForm from "./RutinasForm";
+import RutinaForm from "./modales/RutinasForm";
+import RutinaDetalle from "./modales/RutinaInfo"; // Inyectamos tu componente de detalle
 import { getRutinas } from "../../services/rutinas";
 import { FaChevronLeft, FaChevronRight, FaStar, FaClock, FaDumbbell } from "react-icons/fa";
 
-// --- CAROUSEL INTERNO (Igual al de ejercicios) ---
+// --- CAROUSEL INTERNO  ---
 const Carousel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -63,7 +64,6 @@ interface Rutina {
   ejercicios: Ejercicio[];
 }
 
-// 🔥 AHORA usamos los valores reales del backend
 const dificultades = ["baja", "media", "alta"];
 
 const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
@@ -72,6 +72,9 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingRutina, setEditingRutina] = useState<any>(null);
+
+  // Estado para manejar el modal de detalle que me pasaste
+  const [selectedRutinaInfo, setSelectedRutinaInfo] = useState<Rutina | null>(null);
 
   const fetchRutinas = async () => {
     setLoading(true);
@@ -84,7 +87,6 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
     fetchRutinas();
   }, []);
 
-  // 🔥 FILTRO CORREGIDO
   const filteredRutinas = selectedDificultad
     ? rutinas.filter((r) => r.dificultad === selectedDificultad)
     : rutinas;
@@ -157,7 +159,7 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
         </div>
       </header>
 
-      {/* MODAL */}
+      {/* MODAL DE FORMULARIO (CREAR/EDITAR) */}
       {showForm && (
         <RutinaForm
           rutina={editingRutina}
@@ -166,6 +168,14 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
             setEditingRutina(null);
           }}
           onSuccess={fetchRutinas}
+        />
+      )}
+
+      {/* INTEGRACIÓN DEL MODAL DE DETALLE (RutinaInfo.tsx) */}
+      {selectedRutinaInfo && (
+        <RutinaDetalle 
+          rutina={selectedRutinaInfo} 
+          onClose={() => setSelectedRutinaInfo(null)} 
         />
       )}
 
@@ -188,22 +198,24 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* GRID ACTUALIZADO: 2 COLUMNAS EN MÓVIL (grid-cols-2) */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {filteredRutinas.map((rutina) => (
             <div
               key={rutina.id}
-              className="group bg-[#161925] rounded-[1.5rem] border border-white/5 overflow-hidden hover:border-purple-500/50 transition-all duration-300 flex flex-col shadow-xl h-[420px]"
+              onClick={() => setSelectedRutinaInfo(rutina)} // Abrir detalle al clickear la card
+              className="group bg-[#161925] rounded-[1.5rem] border border-white/5 overflow-hidden hover:border-purple-500/50 transition-all duration-300 flex flex-col shadow-xl h-[380px] md:h-[420px] cursor-pointer"
             >
-              <div className="p-6 flex flex-col h-full">
+              <div className="p-4 md:p-6 flex flex-col h-full">
 
                 <div className="flex justify-between items-start mb-4">
-                  <span className="bg-purple-600/20 text-purple-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-purple-500/30">
+                  <span className="bg-purple-600/20 text-purple-400 px-2 md:px-3 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest border border-purple-500/30 truncate">
                     {rutina.dificultad}
                   </span>
 
-                  <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded-lg">
+                  <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded-lg shrink-0">
                     <FaStar size={10} />
-                    <span className="text-xs font-black">
+                    <span className="text-[10px] md:text-xs font-black">
                       {rutina.promedio_calificacion || "0.0"}
                     </span>
                   </div>
@@ -212,25 +224,26 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                 <Text
                   size="xl"
                   weight="black"
-                  className="uppercase tracking-tight mb-2 group-hover:text-purple-400 transition-colors truncate"
+                  className="uppercase tracking-tight mb-2 group-hover:text-purple-400 transition-colors truncate text-sm md:text-xl"
                 >
                   {rutina.nombre}
                 </Text>
 
-                <p className="text-gray-500 text-xs leading-tight mb-4 line-clamp-2">
+                <p className="text-gray-500 text-[10px] md:text-xs leading-tight mb-4 line-clamp-2">
                   {rutina.descripcion}
                 </p>
 
                 <div className="flex-1 overflow-y-auto no-scrollbar bg-black/20 rounded-xl p-3 border border-white/5 mb-4">
                   <div className="text-[9px] text-gray-500 font-bold uppercase mb-2 flex items-center gap-2">
                     <FaDumbbell className="text-purple-500" />
-                    Plan de entrenamiento
+                    <span className="hidden md:inline">Plan de entrenamiento</span>
+                    <span className="md:hidden">Plan</span>
                   </div>
 
                   {rutina.ejercicios.map((ej, idx) => (
                     <div
                       key={idx}
-                      className="flex justify-between text-[11px] py-2 border-b border-white/5 last:border-0"
+                      className="flex justify-between text-[10px] md:text-[11px] py-2 border-b border-white/5 last:border-0"
                     >
                       <span className="text-gray-300 font-medium truncate pr-2">
                         {ej.nombre}
@@ -246,17 +259,18 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                 <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
                   <div className="flex items-center gap-2 text-gray-400 font-bold">
                     <FaClock size={12} className="text-purple-500" />
-                    <span className="text-[11px] uppercase tracking-wider">
+                    <span className="text-[9px] md:text-[11px] uppercase tracking-wider">
                       {rutina.duracion || "45"} MIN
                     </span>
                   </div>
 
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation(); // IMPORTANTE: para que no se abra el modal de detalle al clickear editar
                       setEditingRutina(rutina);
                       setShowForm(true);
                     }}
-                    className="bg-white text-black px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all shadow-md active:scale-95"
+                    className="bg-white text-black px-3 py-1.5 md:px-5 md:py-2 rounded-lg text-[8px] md:text-[10px] font-black uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all shadow-md active:scale-95"
                   >
                     Editar
                   </button>

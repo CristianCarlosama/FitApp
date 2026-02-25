@@ -218,8 +218,14 @@ const Landing: React.FC = () => {
         <div className="flex flex-col h-full p-6">
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-                <img src={logo} alt="Logo FITAPP" className="w-10 h-10 rounded-xl" />
+              <div 
+                onClick={() => setActiveView("landing")}
+                className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-500 rounded-xl flex items-center justify-center shadow-lg cursor-pointer"
+              >
+                <img 
+                  src={logo} 
+                  alt="Logo FITAPP" 
+                  className="w-10 h-10 rounded-xl" />
               </div>
               <Text size="2xl" weight="bold">FIT<span className="text-purple-500">APP</span></Text>
             </div>
@@ -254,7 +260,10 @@ const Landing: React.FC = () => {
         
         {/* TOPBAR MÓVIL */}
         <header className="lg:hidden h-16 flex items-center justify-between px-6 bg-[#161925]/80 backdrop-blur-md sticky top-0 z-30 border-b border-white/5">
-          <button onClick={() => setSidebarOpen(true)} className="p-2 bg-white/5 rounded-lg">
+          <button 
+            onClick={() => setSidebarOpen(true)} 
+            className="p-2 bg-white/5 rounded-lg"
+          >
             <FaBars className="text-md" />
           </button>
           <button

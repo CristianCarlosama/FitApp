@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { createRutina, updateRutina } from "../../services/rutinas";
-import SelectorEjercicios from "./SelectorEjercicios";
+import { createRutina, updateRutina } from "../../../services/rutinas";
+import SelectorEjercicios from "../SelectorEjercicios";
 
 interface Props {
   rutina?: any;
