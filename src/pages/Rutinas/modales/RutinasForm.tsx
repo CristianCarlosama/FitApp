@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { createRutina, updateRutina } from "../../../services/rutinas";
 import SelectorEjercicios from "../SelectorEjercicios";
+import Text from "../../../components/Texts";
+import NotificationModal from "../../../components/NotificationModal"; // 👈 Asegúrate de que la ruta sea correcta
+import { FaTrash, FaPlus } from "react-icons/fa";
 
 interface Props {
   rutina?: any;
@@ -8,11 +11,7 @@ interface Props {
   onSuccess: () => void;
 }
 
-const RutinaForm: React.FC<Props> = ({
-  rutina,
-  onClose,
-  onSuccess,
-}) => {
+const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [dificultad, setDificultad] = useState("");
@@ -20,19 +19,24 @@ const RutinaForm: React.FC<Props> = ({
   const [ejercicios, setEjercicios] = useState<any[]>([]);
   const [openSelector, setOpenSelector] = useState(false);
 
+  // Estado para la notificación
+  const [notif, setNotif] = useState<{ open: boolean; title: string; message: string; type: 'success' | 'error' }>({
+    open: false,
+    title: "",
+    message: "",
+    type: "success"
+  });
+
   useEffect(() => {
     if (rutina) {
       setNombre(rutina.nombre);
       setDescripcion(rutina.descripcion || "");
       setDificultad(rutina.dificultad || "");
       setDuracion(rutina.duracion || "");
-      
       setEjercicios(
         (rutina.ejercicios || []).map((ej: any) => ({
           ...ej,
-          // Usamos 'id' si viene directo, o 'ejercicio_id' si viene de la pivote
-          // pero lo guardamos siempre como 'id' para no confundirnos
-          id: ej.id || ej.ejercicio_id, 
+          id: ej.id || ej.ejercicio_id,
           series: ej.series || 3,
           repeticiones: ej.repeticiones || 10,
           descanso: ej.descanso || 60,
@@ -41,31 +45,12 @@ const RutinaForm: React.FC<Props> = ({
     }
   }, [rutina]);
 
-  const agregarEjercicio = () => {
-    setOpenSelector(true);
-  };
-
   const handleSelectEjercicio = (ej: any) => {
-    // Ahora comparamos siempre contra .id
-    if (ejercicios.some(e => e.id === ej.id)) return; 
-
-    setEjercicios([
-      ...ejercicios,
-      {
-        ...ej, // trae nombre, imagen_url, etc.
-        id: ej.id, 
-        series: 3,
-        repeticiones: 10,
-        descanso: 60,
-      },
-    ]);
+    if (ejercicios.some((e) => e.id === ej.id)) return;
+    setEjercicios([...ejercicios, { ...ej, id: ej.id, series: 3, repeticiones: 10, descanso: 60 }]);
   };
 
-  const handleEjercicioChange = (
-    index: number,
-    field: string,
-    value: any
-  ) => {
+  const handleEjercicioChange = (index: number, field: string, value: any) => {
     const nuevos = [...ejercicios];
     nuevos[index][field] = value;
     setEjercicios(nuevos);
@@ -73,75 +58,59 @@ const RutinaForm: React.FC<Props> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Limpieza de IDs: filtramos cualquier undefined o null
-    const idsFinales = ejercicios
-      .map(ej => ej.id || ej.ejercicio_id)
-      .filter(id => id !== undefined && id !== null);
+    const idsFinales = ejercicios.map((ej) => ej.id).filter(id => id);
 
     if (idsFinales.length === 0) {
-      alert("Debes agregar al menos un ejercicio válido");
+      setNotif({ open: true, title: "Ojo ahí", message: "Añade al menos un ejercicio, pana.", type: "error" });
       return;
     }
 
-    const data = {
-      nombre,
-      descripcion,
-      dificultad,
-      duracion,
-      ejercicios: idsFinales, // Mandamos el array de IDs puros
-    };
-
-    console.log("Datos que van al backend:", data); // Agrega este log para estar seguro
+    const data = { nombre, descripcion, dificultad, duracion, ejercicios: idsFinales };
 
     try {
       if (rutina) {
         await updateRutina(rutina.id, data);
+        setNotif({ open: true, title: "¡Melo!", message: "Rutina actualizada correctamente.", type: "success" });
       } else {
         await createRutina(data);
+        setNotif({ open: true, title: "¡Melo!", message: "Nueva rutina creada. ¡A darle!", type: "success" });
       }
-      onSuccess();
-      onClose();
+
+      // Esperamos 2 segundos para que vean el "Melo" y cerramos
+      setTimeout(() => {
+        onSuccess();
+        onClose();
+      }, 2000);
+
     } catch (err) {
-      console.error(err);
-      alert("Ocurrió un error al guardar");
+      setNotif({ open: true, title: "Error", message: "Algo salió mal al guardar la rutina.", type: "error" });
     }
   };
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-        <form
-          onSubmit={handleSubmit}
-          className="bg-[#161925] p-8 rounded-2xl w-[500px] max-h-[90vh] overflow-y-auto flex flex-col gap-4"
-        >
-          <h2 className="text-xl font-black uppercase text-center">
-            {rutina ? "Editar Rutina" : "Nueva Rutina"}
-          </h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="bg-[#161925] border border-white/10 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl overflow-y-auto max-h-[90vh] scrollbar-hide">
+        
+        <Text size="2xl" weight="black" variant="gradient" className="uppercase text-center mb-6">
+          {rutina ? "Editar Rutina" : "Nueva Rutina"}
+        </Text>
 
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
-            type="text"
-            placeholder="Nombre"
+            className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-white"
+            placeholder="Nombre de la Rutina"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             required
-            className="bg-white/5 p-3 rounded-lg"
-          />
-
-          <textarea
-            placeholder="Descripción"
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-            className="bg-white/5 p-3 rounded-lg"
           />
 
           <select
+            className="w-full bg-[#161925] border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-gray-400"
             value={dificultad}
             onChange={(e) => setDificultad(e.target.value)}
             required
-            className="bg-white/5 p-3 rounded-lg"
           >
-            <option value="">Seleccionar dificultad</option>
+            <option value="">Seleccionar Dificultad</option>
             <option value="baja">Baja</option>
             <option value="media">Media</option>
             <option value="alta">Alta</option>
@@ -149,120 +118,103 @@ const RutinaForm: React.FC<Props> = ({
 
           <input
             type="number"
-            placeholder="Duración (min)"
+            className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-white"
+            placeholder="Duración aprox (min)"
             value={duracion}
             onChange={(e) => setDuracion(Number(e.target.value))}
-            className="bg-white/5 p-3 rounded-lg"
           />
 
-          {/* EJERCICIOS */}
-          <div className="flex justify-between items-center mt-4">
-            <h3 className="text-sm font-bold uppercase">
-              Ejercicios
-            </h3>
+          <textarea
+            className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all h-24 resize-none text-white"
+            placeholder="Descripción de la rutina"
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+          />
 
-            <button
-              type="button"
-              onClick={agregarEjercicio}
-              className="bg-purple-600 px-4 py-2 rounded-lg text-xs font-bold"
-            >
-              + Agregar
-            </button>
+          <div className="pt-4 border-t border-white/5">
+            <div className="flex justify-between items-center mb-4">
+              <Text size="sm" weight="black" className="uppercase text-gray-400">Ejercicios</Text>
+              <button
+                type="button"
+                onClick={() => setOpenSelector(true)}
+                className="bg-purple-600/20 text-purple-400 p-2 rounded-xl hover:bg-purple-600 hover:text-white transition-all"
+              >
+                <FaPlus size={12} />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {ejercicios.map((ej, index) => (
+                <div key={index} className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold uppercase text-purple-400">{ej.nombre}</span>
+                    <button 
+                      type="button"
+                      onClick={() => setEjercicios(ejercicios.filter((_, i) => i !== index))}
+                      className="text-gray-600 hover:text-red-500"
+                    >
+                      <FaTrash size={12} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <input
+                      type="number"
+                      className="bg-black/40 p-2 rounded-lg text-xs text-center outline-none border border-white/5 focus:border-purple-500 text-white"
+                      value={ej.series}
+                      onChange={(e) => handleEjercicioChange(index, "series", e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      className="bg-black/40 p-2 rounded-lg text-xs text-center outline-none border border-white/5 focus:border-purple-500 text-white"
+                      value={ej.repeticiones}
+                      onChange={(e) => handleEjercicioChange(index, "repeticiones", e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      className="bg-black/40 p-2 rounded-lg text-xs text-center outline-none border border-white/5 focus:border-purple-500 text-white"
+                      value={ej.descanso}
+                      onChange={(e) => handleEjercicioChange(index, "descanso", e.target.value)}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {ejercicios.map((ej, index) => (
-            <div
-              key={index}
-              className="bg-black/30 p-4 rounded-xl border border-white/10 flex flex-col gap-3"
+          <div className="flex flex-col gap-3 mt-8">
+            <button
+              type="submit"
+              className="w-full bg-purple-600 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/20"
             >
-              <div className="flex gap-3 items-center">
-                <img
-                  src={ej.imagen_url}
-                  alt={ej.nombre}
-                  className="h-16 w-16 object-cover rounded-lg"
-                />
-                <div>
-                  <h4 className="font-bold text-sm">{ej.nombre}</h4>
-                  <p className="text-xs text-gray-400 line-clamp-2">
-                    {ej.descripcion}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <input
-                  type="number"
-                  placeholder="Series"
-                  value={ej.series}
-                  onChange={(e) =>
-                    handleEjercicioChange(
-                      index,
-                      "series",
-                      Number(e.target.value)
-                    )
-                  }
-                  className="bg-white/5 p-2 rounded-lg"
-                />
-
-                <input
-                  type="number"
-                  placeholder="Reps"
-                  value={ej.repeticiones}
-                  onChange={(e) =>
-                    handleEjercicioChange(
-                      index,
-                      "repeticiones",
-                      Number(e.target.value)
-                    )
-                  }
-                  className="bg-white/5 p-2 rounded-lg"
-                />
-
-                <input
-                  type="number"
-                  placeholder="Descanso"
-                  value={ej.descanso}
-                  onChange={(e) =>
-                    handleEjercicioChange(
-                      index,
-                      "descanso",
-                      Number(e.target.value)
-                    )
-                  }
-                  className="bg-white/5 p-2 rounded-lg"
-                />
-              </div>
-            </div>
-          ))}
-
-          <div className="flex justify-between mt-6">
+              Guardar Rutina
+            </button>
             <button
               type="button"
               onClick={onClose}
-              className="text-gray-400"
+              className="text-gray-500 font-bold uppercase text-[10px] hover:text-white transition-all py-2"
             >
               Cancelar
-            </button>
-
-            <button
-              type="submit"
-              className="bg-purple-600 px-6 py-2 rounded-lg font-bold"
-            >
-              Guardar
             </button>
           </div>
         </form>
       </div>
 
+      {/* Selector de ejercicios */}
       <SelectorEjercicios
         isOpen={openSelector}
         onClose={() => setOpenSelector(false)}
-        onSelect={(ej) => {
-          handleSelectEjercicio(ej);
-          setOpenSelector(false);
-        }}
+        onSelect={handleSelectEjercicio}
       />
-    </>
+
+      {/* MODAL DE NOTIFICACIÓN REUTILIZABLE */}
+      <NotificationModal
+        isOpen={notif.open}
+        title={notif.title}
+        message={notif.message}
+        type={notif.type}
+        onClose={() => setNotif({ ...notif, open: false })}
+      />
+    </div>
   );
 };
 
