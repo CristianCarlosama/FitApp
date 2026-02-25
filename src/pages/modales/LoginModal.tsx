@@ -35,7 +35,10 @@ const LoginModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) => {
 
     try {
       const res = await login(form.login, form.password);
+
       localStorage.setItem('token', res.token);
+      localStorage.setItem('user', JSON.stringify(res.user)); // 🔹 importante para el rol
+
       if (onLoginSuccess) onLoginSuccess();
       alert('🔥 Login exitoso');
       onClose();

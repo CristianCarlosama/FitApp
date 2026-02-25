@@ -3,6 +3,7 @@ import logo from '../assets/AresGymFT.png'
 import RegisterModal from './modales/RegisterModal';
 import LoginModal from './modales/LoginModal';
 import EjerciciosView from './Ejercicios/EjerciciosView';
+import CRUDEjercicios from './EjercicioDev/CRUDEjercicios';
 import TemporizadorView from './Temporizador/TemporizadorView';
 import CronometroView from './Cronometro/CronometroView';
 import Button from '../components/Buttons';
@@ -20,6 +21,7 @@ type ViewType =
   | "cronometro"
   | "temporizador"
   | "ejercicios"
+  | "crudEjercicios"
   | "rutinas"
   | "metas"
   | "mapa"
@@ -32,18 +34,35 @@ const Landing: React.FC = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
-  // 👇 Estado para controlar qué se ve en el contenido principal
+  // Controlar contenido principal
   const [activeView, setActiveView] = useState<ViewType>(() => {
     return (localStorage.getItem("activeView") as ViewType) || "landing";
   });
 
   useEffect(() => {
-    localStorage.setItem("activeView", activeView);
-  }, [activeView]);
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsAuthenticated(true);
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        setUserRole(payload.role);
+      } catch (e) {
+        console.error("Error parseando token:", e);
+      }
+    }
+  }, []);
+
+  console.log("ROL DEL USUARIO:", userRole);
 
   const renderView = () => {
     switch (activeView) {
+      case "crudEjercicios":
+        return <CRUDEjercicios 
+          userRole={userRole} goBack={() => setActiveView("landing")} 
+        />;
+
       case "ejercicios":
         return <EjerciciosView 
           goBack={() => setActiveView("landing")}
@@ -137,7 +156,7 @@ const Landing: React.FC = () => {
       default:
         return (
           <div className="p-6 md:p-10 w-full max-w-none mx-auto space-y-12 pb-[50px]">
-            {/* aquí va TODO tu contenido actual del landing */}
+            {/* contenido actual de la landing */}
           </div>
         );
     }
@@ -150,7 +169,10 @@ const Landing: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user'); 
     setIsAuthenticated(false);
+    setUserRole(null);
+    setActiveView("landing");
   };
 
   const cards = [
@@ -238,6 +260,15 @@ const Landing: React.FC = () => {
             <NavItem icon={<FaUserCircle />} label="Mi Cuenta" />
             <NavItem icon={<FaCog />} label="Configuración" />
             <NavItem icon={<FaLifeRing />} label="Soporte Técnico" />
+            
+            {/* ITEM SOLO PARA ADMIN/DEV */}
+            {(userRole === "Admin" || userRole === "Dev") && (
+              <NavItem 
+                icon={<FaDumbbell />} 
+                label="CRUD Ejercicios" 
+                onClick={() => setActiveView("crudEjercicios")} 
+              />
+            )}
           </nav>
 
           <div className="mt-auto pt-6 border-t border-white/5 space-y-3">
@@ -256,7 +287,7 @@ const Landing: React.FC = () => {
       </aside>
 
       {/* CONTENIDO PRINCIPAL */}
-      <main className="flex-1 flex flex-col min-w-0 lg:ml-72 xl:mr-80 transition-all duration-300">
+      <main className="flex-1 flex flex-col min-w-0 lg:ml-72 xl:mr-80 transition-all duration-300 z-10 relative">
         
         {/* TOPBAR MÓVIL */}
         <header className="lg:hidden h-16 flex items-center justify-between px-6 bg-[#161925]/80 backdrop-blur-md sticky top-0 z-30 border-b border-white/5">
@@ -352,8 +383,11 @@ const Landing: React.FC = () => {
   );
 };
 
-const NavItem = ({ icon, label }: { icon: React.ReactNode, label: string }) => (
-  <button className="w-full flex items-center gap-4 p-3.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group">
+const NavItem = ({ icon, label, onClick }: { icon: React.ReactNode, label: string, onClick?: () => void }) => (
+  <button
+    onClick={onClick}
+    className="w-full flex items-center gap-4 p-3.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group"
+  >
     <span className="text-xl group-hover:text-purple-400 transition-colors">{icon}</span>
     <span className="font-medium text-sm">{label}</span>
   </button>
