@@ -54,7 +54,7 @@ const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
       setNoti({
         isOpen: true,
         type: "success",
-        title: "¡Melo!",
+        title: "¡Éxito!",
         message: `Ejercicio ${isEdit ? 'actualizado' : 'creado'} correctamente.`
       });
     } catch (error) {

@@ -70,13 +70,12 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
     try {
       if (rutina) {
         await updateRutina(rutina.id, data);
-        setNotif({ open: true, title: "¡Melo!", message: "Rutina actualizada correctamente.", type: "success" });
+        setNotif({ open: true, title: "¡Éxito!", message: "Rutina actualizada correctamente.", type: "success" });
       } else {
         await createRutina(data);
-        setNotif({ open: true, title: "¡Melo!", message: "Nueva rutina creada. ¡A darle!", type: "success" });
+        setNotif({ open: true, title: "¡Éxito!", message: "Nueva rutina creada. ¡A darle!", type: "success" });
       }
 
-      // Esperamos 2 segundos para que vean el "Melo" y cerramos
       setTimeout(() => {
         onSuccess();
         onClose();
