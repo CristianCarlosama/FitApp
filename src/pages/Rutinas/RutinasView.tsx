@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Text from "../../components/Texts";
 import RutinaForm from "./modales/RutinasForm";
-import RutinaDetalle from "./modales/RutinaInfo"; // Inyectamos tu componente de detalle
+import RutinaDetalle from "./modales/RutinaInfo"; 
 import { getRutinas } from "../../services/rutinas";
 import { FaChevronLeft, FaChevronRight, FaStar, FaClock, FaDumbbell } from "react-icons/fa";
 
@@ -73,7 +73,6 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingRutina, setEditingRutina] = useState<any>(null);
 
-  // Estado para manejar el modal de detalle que me pasaste
   const [selectedRutinaInfo, setSelectedRutinaInfo] = useState<Rutina | null>(null);
 
   const fetchRutinas = async () => {
@@ -159,7 +158,6 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
         </div>
       </header>
 
-      {/* MODAL DE FORMULARIO (CREAR/EDITAR) */}
       {showForm && (
         <RutinaForm
           rutina={editingRutina}
@@ -171,7 +169,6 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
         />
       )}
 
-      {/* INTEGRACIÓN DEL MODAL DE DETALLE (RutinaInfo.tsx) */}
       {selectedRutinaInfo && (
         <RutinaDetalle 
           rutina={selectedRutinaInfo} 
@@ -179,7 +176,6 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
         />
       )}
 
-      {/* MAIN */}
       <main className="flex-1 p-4 md:p-8 lg:p-10 max-w-[1400px] mx-auto w-full pb-24">
 
         <div className="flex justify-between items-center mb-8">
@@ -198,12 +194,11 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
           </button>
         </div>
 
-        {/* GRID ACTUALIZADO: 2 COLUMNAS EN MÓVIL (grid-cols-2) */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {filteredRutinas.map((rutina) => (
             <div
               key={rutina.id}
-              onClick={() => setSelectedRutinaInfo(rutina)} // Abrir detalle al clickear la card
+              onClick={() => setSelectedRutinaInfo(rutina)}
               className="group bg-[#161925] rounded-[1.5rem] border border-white/5 overflow-hidden hover:border-purple-500/50 transition-all duration-300 flex flex-col shadow-xl h-[380px] md:h-[420px] cursor-pointer"
             >
               <div className="p-4 md:p-6 flex flex-col h-full">
@@ -233,11 +228,17 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                   {rutina.descripcion}
                 </p>
 
-                <div className="flex-1 overflow-y-auto no-scrollbar bg-black/20 rounded-xl p-3 border border-white/5 mb-4">
-                  <div className="text-[9px] text-gray-500 font-bold uppercase mb-2 flex items-center gap-2">
-                    <FaDumbbell className="text-purple-500" />
-                    <span className="hidden md:inline">Plan de entrenamiento</span>
-                    <span className="md:hidden">Plan</span>
+                <div className="flex-1 overflow-y-auto no-scrollbar bg-black/20 rounded-xl p-3 border border-white/5 mb-4 relative">
+                  <div className="text-[9px] text-gray-500 font-bold uppercase mb-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FaDumbbell className="text-purple-500" />
+                      <span className="hidden md:inline">Plan de entrenamiento</span>
+                      <span className="md:hidden">Plan</span>
+                    </div>
+                    {/* CONTADOR TOTAL DE EJERCICIOS */}
+                    <span className="text-purple-400/80 bg-purple-400/10 px-2 py-0.5 rounded-md">
+                      {rutina.ejercicios.length} Ejercicios
+                    </span>
                   </div>
 
                   {rutina.ejercicios.map((ej, idx) => (
@@ -254,6 +255,15 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                       </span>
                     </div>
                   ))}
+                  
+                  {/* INDICADOR VISUAL SI HAY MUCHOS EJERCICIOS */}
+                  {rutina.ejercicios.length > 5 && (
+                    <div className="sticky bottom-0 left-0 right-0 bg-gradient-to-t from-[#161925] to-transparent pt-4 pb-1 text-center">
+                      <span className="text-[8px] font-black text-purple-400 uppercase tracking-tighter">
+                        + {rutina.ejercicios.length - 5} más... Ver detalles
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
@@ -266,7 +276,7 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
 
                   <button
                     onClick={(e) => {
-                      e.stopPropagation(); // IMPORTANTE: para que no se abra el modal de detalle al clickear editar
+                      e.stopPropagation(); 
                       setEditingRutina(rutina);
                       setShowForm(true);
                     }}
