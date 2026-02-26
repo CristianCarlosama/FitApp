@@ -107,7 +107,7 @@ const Landing: React.FC = () => {
                 ← Volver
               </button>
 
-              <div>Vista Metas</div>
+              <div>Próximamente Metas</div>
             </div>
           );
 
@@ -121,7 +121,7 @@ const Landing: React.FC = () => {
                 ← Volver
               </button>
 
-              <div>Vista Mapa</div>
+              <div>Próximamente Mapa</div>
             </div>
           );
 
@@ -135,7 +135,7 @@ const Landing: React.FC = () => {
                 ← Volver
               </button>
 
-              <div>Vista Medidas</div>
+              <div>Próximamente Medidas</div>
             </div>
           );
 
@@ -149,7 +149,7 @@ const Landing: React.FC = () => {
                 ← Volver
               </button>
 
-              <div>Vista Comentarios</div>
+              <div>Próximamente Comentarios</div>
             </div>
           );
 
@@ -163,14 +163,13 @@ const Landing: React.FC = () => {
                 ← Volver
               </button>
 
-              <div>Vista Fotos</div>
+              <div>Próximamente Fotos</div>
             </div>
           );
 
       default:
         return (
           <div className="p-6 md:p-10 w-full max-w-none mx-auto space-y-12 pb-[50px]">
-            {/* contenido actual de la landing */}
           </div>
         );
     }
@@ -186,6 +185,16 @@ const Landing: React.FC = () => {
   };
 
   const cards = [
+    { title: 'Ejercicios', 
+      view: 'ejercicios',
+      icon: <FaDumbbell className="text-green-400" />, 
+      description: 'Explora diferentes Ejercicios.' 
+    },
+    { title: 'Rutinas', 
+      view: 'rutinas',
+      icon: <FaTasks className="text-orange-400" />, 
+      description: 'Crea tus Rutinas' 
+    },
     { title: 'Cronómetro', 
       view: 'cronometro',
       icon: <FaStopwatch className="text-purple-400" />, 
@@ -195,16 +204,6 @@ const Landing: React.FC = () => {
       view: 'temporizador',
       icon: <FaClock className="text-blue-400" />, 
       description: 'Sesiones de descanso.' 
-    },
-    { title: 'Ejercicios', 
-      view: 'ejercicios',
-      icon: <FaDumbbell className="text-green-400" />, 
-      description: 'Explora rutinas.' 
-    },
-    { title: 'Rutinas', 
-      view: 'rutinas',
-      icon: <FaTasks className="text-orange-400" />, 
-      description: 'Tus planes diarios.' 
     },
     { title: 'Metas', 
       view: 'metas',
@@ -350,13 +349,13 @@ const Landing: React.FC = () => {
 
               <section>
                 <Text size="2xl" weight="bold" className="mb-8">Herramientas</Text>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
                   {cards.map((card, idx) => (
                     <Card
                       key={idx}
                       title={card.title}
                       description={card.description}
-                      icon={<span className="text-3xl mb-2 block">{card.icon}</span>}
+                      icon={<span className="text-2xl md:text-3xl mb-2 block">{card.icon}</span>}
                       onClick={() => setActiveView(card.view as ViewType)}
                     />
                   ))}

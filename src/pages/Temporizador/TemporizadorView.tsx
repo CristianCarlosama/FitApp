@@ -5,8 +5,13 @@ interface TemporizadorViewProps {
 const TemporizadorView = ({ goBack }: TemporizadorViewProps) => {
   return (
     <div className="p-10">
-      <div className="p-10">Vista Cronómetro</div>;
-      <button onClick={goBack}>Volver</button>
+      <div className="p-10">Próximamente Temporizador</div>;
+      <button
+        onClick={goBack}
+        className="text-gray-400 hover:text-white transition"
+      >
+        Volver
+      </button>
     </div>
   )
 };
