@@ -90,16 +90,12 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
     let matchesCategory = true;
     if (selectedClase) {
       const claseNormalizada = selectedClase.trim().toLowerCase();
-      
       const esPrincipal = (e.clase || "").trim().toLowerCase() === claseNormalizada;
-      
       const esSecundario = !!e.musculos_secundarios?.some(
         m => (m.nombre || "").trim().toLowerCase() === claseNormalizada
       );
-      
       matchesCategory = esPrincipal || esSecundario;
     }
-
     return matchesSearch && matchesCategory;
   });
 

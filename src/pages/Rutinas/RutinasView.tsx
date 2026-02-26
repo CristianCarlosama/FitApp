@@ -87,7 +87,32 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchRutinas(); }, []);
+  useEffect(() => { 
+    fetchRutinas(); 
+  }, []);
+
+  const filteredRutinas = rutinas.filter((r) => {
+    const nombre = r.nombre?.toLowerCase() || "";
+    const descripcion = r.descripcion?.toLowerCase() || "";
+    const busqueda = searchTerm.toLowerCase();
+    
+    const matchesSearch = nombre.includes(busqueda) || descripcion.includes(busqueda);
+
+    // Filtrado por Categoría
+    let matchesCategory = true;
+    if (filtroActivo) {
+      if (filtroActivo === "Mías") {
+        matchesCategory = !!r.es_mia;
+      } else if (filtroActivo === "Públicas") {
+        matchesCategory = !!r.es_publica;
+      } else {
+        matchesCategory = r.ejercicios.some(ej => 
+          ej.nombre.toLowerCase().includes(filtroActivo.toLowerCase())
+        );
+      }
+    }
+    return matchesSearch && matchesCategory;
+  });
 
   const handleDeleteRequest = (rutina: Rutina) => {
     setNoti({
@@ -103,29 +128,6 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
     });
   };
 
-  const getRutinasFinales = () => {
-    let result = [...rutinas];
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(r => 
-        r.nombre.toLowerCase().includes(term) || 
-        r.descripcion?.toLowerCase().includes(term)
-      );
-    }
-    if (filtroActivo) {
-      if (filtroActivo === "Mías") result = result.filter(r => r.es_mia);
-      else if (filtroActivo === "Públicas") result = result.filter(r => r.es_publica);
-      else {
-        result = result.filter(r => 
-          r.ejercicios.some(ej => ej.nombre.toLowerCase().includes(filtroActivo.toLowerCase()))
-        );
-      }
-    }
-    return result;
-  };
-
-  const rutinasFinales = getRutinasFinales();
-
   if (loading) return (
     <div className="min-h-screen bg-[#0f111a] flex items-center justify-center text-white font-black uppercase tracking-widest">
       Cargando Ares...
@@ -134,7 +136,6 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
 
   return (
     <div className="flex flex-col h-auto w-full font-sans">
-      
       {/* HEADER */}
       <header className="sticky top-0 z-40 bg-[#0f111a]/95 backdrop-blur-xl border-b border-white/5 p-4 md:p-6">
         <div className="max-w-[1400px] mx-auto flex flex-col gap-6">
@@ -159,19 +160,26 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
       </header>
 
       <main className="p-4 md:p-8 max-w-[1400px] mx-auto w-full">
+        <div className="flex justify-between items-end mb-8">
+            <div className="flex flex-col">
+              <Text size="2xl" weight="black" variant="gradient" className="uppercase">Ejercicios</Text>
+              <Text size="xs" className="text-gray-500 font-bold uppercase tracking-widest">
+                {filteredRutinas.length} resultados encontrados
+              </Text>
+            </div>
+        </div>
         <div className="flex justify-between items-center mb-8">
           <Text size="2xl" weight="black" variant="gradient">MIS RUTINAS</Text>
           <button onClick={() => { setEditingRutina(null); setShowForm(true); }} className="bg-purple-600 hover:bg-purple-700 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">+ Nueva Rutina</button>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {rutinasFinales.map((rutina) => (
+          {filteredRutinas.map((rutina) => (
             <CardLayout
               key={rutina.id}
               onClick={() => setSelectedRutinaInfo(rutina)}
               className="h-[420px]"
             >
-              {/* PANEL DE BOTONES (Efecto Pestaña asomada) */}
               {rutina.es_mia && (
                 <div className="absolute top-6 right-0 z-30 flex flex-col gap-2 
                                 translate-x-9 group-hover:translate-x-[-12px] 
