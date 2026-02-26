@@ -44,7 +44,7 @@ const EjercicioForm: React.FC<Props> = ({
     };
 
     if (!formData.nombre || !formData.clase) {
-      alert("Pana, el nombre y la clase son obligatorios.");
+      alert("El nombre y la clase son obligatorios.");
       return;
     }
 

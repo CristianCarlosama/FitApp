@@ -60,7 +60,7 @@ const RegisterModal: React.FC<Props> = ({ isOpen, onClose }) => {
     if (form.password !== form.confirmPassword) {
       setNotif({ 
         open: true, 
-        title: "Pana, revisa", 
+        title: "Error", 
         message: "Las contraseñas no coinciden.", 
         type: "error" 
       });

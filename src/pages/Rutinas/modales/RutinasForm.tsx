@@ -12,7 +12,6 @@ interface Props {
 }
 
 const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
-  // Verificamos si la rutina es propia (si no viene rutina, estamos creando, así que es propia)
   const esMia = rutina ? (rutina.es_mia ?? true) : true;
 
   const [nombre, setNombre] = useState("");
@@ -23,8 +22,8 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
   const [openSelector, setOpenSelector] = useState(false);
 
   const [esPublica, setEsPublica] = useState(false);
-  const [accesos, setAccesos] = useState<number[]>([]); // IDs de amigos
-  const [friends, setFriends] = useState<any[]>([]); // lista de amigos
+  const [accesos, setAccesos] = useState<number[]>([]); 
+  const [friends, setFriends] = useState<any[]>([]); 
 
   const [notif, setNotif] = useState<{ open: boolean; title: string; message: string; type: 'success' | 'error' }>({
     open: false,
@@ -83,7 +82,7 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
 
     const idsFinales = ejercicios.map((ej) => ej.id).filter(id => id);
     if (idsFinales.length === 0) {
-      setNotif({ open: true, title: "Ojo ahí", message: "Añade al menos un ejercicio, pana.", type: "error" });
+      setNotif({ open: true, title: "Ojo ahí", message: "Debes añadir al menos un ejercicio.", type: "error" });
       return;
     }
 
@@ -116,50 +115,67 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-[#161925] border border-white/10 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl overflow-y-auto max-h-[90vh] scrollbar-hide">
+      <div className="bg-[#161925] border border-white/10 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl overflow-y-auto max-h-[90vh] no-scrollbar">
         
-        <Text size="2xl" weight="black" variant="gradient" className="uppercase text-center mb-6">
+        <Text size="2xl" weight="black" variant="gradient" className="uppercase text-center mb-8">
           {rutina ? (esMia ? "Editar Rutina" : "Detalles de Rutina") : "Nueva Rutina"}
         </Text>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Bloqueamos todos los inputs si la rutina no es nuestra */}
-          <fieldset disabled={!esMia} className="space-y-4 contents">
-            <input
-              className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-white disabled:opacity-50"
-              placeholder="Nombre de la Rutina"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              required
-            />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <fieldset disabled={!esMia} className="space-y-5 contents">
+            
+            {/* NOMBRE */}
+            <div className="flex flex-col gap-2">
+              <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Nombre de la Rutina</span>
+              <input
+                className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-white disabled:opacity-50"
+                placeholder="Ej: Empuje Explosivo"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                required
+              />
+            </div>
 
-            <select
-              className="w-full bg-[#161925] border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-gray-400 disabled:opacity-50"
-              value={dificultad}
-              onChange={(e) => setDificultad(e.target.value)}
-              required
-            >
-              <option value="">Seleccionar Dificultad</option>
-              <option value="baja">Baja</option>
-              <option value="media">Media</option>
-              <option value="alta">Alta</option>
-            </select>
+            {/* DIFICULTAD */}
+            <div className="flex flex-col gap-2">
+              <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Dificultad</span>
+              <select
+                className="w-full bg-[#1e2230] border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-gray-300 disabled:opacity-50 appearance-none"
+                value={dificultad}
+                onChange={(e) => setDificultad(e.target.value)}
+                required
+              >
+                <option value="">Seleccionar...</option>
+                <option value="baja">Baja</option>
+                <option value="media">Media</option>
+                <option value="alta">Alta</option>
+              </select>
+            </div>
 
-            <input
-              type="number"
-              className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-white disabled:opacity-50"
-              placeholder="Duración aprox (min)"
-              value={duracion}
-              onChange={(e) => setDuracion(Number(e.target.value))}
-            />
+            {/* DURACIÓN */}
+            <div className="flex flex-col gap-2">
+              <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Duración aprox (min)</span>
+              <input
+                type="number"
+                className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-white disabled:opacity-50"
+                placeholder="Ej: 60"
+                value={duracion}
+                onChange={(e) => setDuracion(Number(e.target.value))}
+              />
+            </div>
 
-            <textarea
-              className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all h-24 resize-none text-white disabled:opacity-50"
-              placeholder="Descripción de la rutina"
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-            />
+            {/* DESCRIPCIÓN */}
+            <div className="flex flex-col gap-2">
+              <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Descripción</span>
+              <textarea
+                className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all h-24 resize-none text-white disabled:opacity-50"
+                placeholder="¿De qué trata esta rutina?"
+                value={descripcion}
+                onChange={(e) => setDescripcion(e.target.value)}
+              />
+            </div>
 
+            {/* EJERCICIOS */}
             <div className="pt-4 border-t border-white/5">
               <div className="flex justify-between items-center mb-4">
                 <Text size="sm" weight="black" className="uppercase text-gray-400">Ejercicios</Text>
@@ -167,7 +183,7 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
                   <button
                     type="button"
                     onClick={() => setOpenSelector(true)}
-                    className="bg-purple-600/20 text-purple-400 p-2 rounded-xl hover:bg-purple-600 hover:text-white transition-all"
+                    className="bg-purple-600 text-white p-2 rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/20"
                   >
                     <FaPlus size={12} />
                   </button>
@@ -176,14 +192,14 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
 
               <div className="space-y-3">
                 {ejercicios.map((ej, index) => (
-                  <div key={index} className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-3">
+                  <div key={index} className="bg-black/20 p-4 rounded-2xl border border-white/5 space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold uppercase text-purple-400">{ej.nombre}</span>
+                      <span className="text-[10px] font-black uppercase text-purple-400 tracking-wider">{ej.nombre}</span>
                       {esMia && (
                         <button 
                           type="button"
                           onClick={() => setEjercicios(ejercicios.filter((_, i) => i !== index))}
-                          className="text-gray-600 hover:text-red-500"
+                          className="text-gray-600 hover:text-red-500 transition-colors"
                         >
                           <FaTrash size={12} />
                         </button>
@@ -191,28 +207,28 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <div className="flex flex-col gap-1">
-                        <span className="text-[8px] uppercase text-gray-500 ml-1">Series</span>
+                        <span className="text-[8px] uppercase text-gray-500 ml-1 font-bold">Series</span>
                         <input
                           type="number"
-                          className="bg-black/40 p-2 rounded-lg text-xs text-center outline-none border border-white/5 focus:border-purple-500 text-white"
+                          className="bg-white/5 p-2 rounded-lg text-xs text-center outline-none border border-white/5 focus:border-purple-500 text-white"
                           value={ej.series}
                           onChange={(e) => handleEjercicioChange(index, "series", e.target.value)}
                         />
                       </div>
                       <div className="flex flex-col gap-1">
-                        <span className="text-[8px] uppercase text-gray-500 ml-1">Reps</span>
+                        <span className="text-[8px] uppercase text-gray-500 ml-1 font-bold">Reps</span>
                         <input
                           type="number"
-                          className="bg-black/40 p-2 rounded-lg text-xs text-center outline-none border border-white/5 focus:border-purple-500 text-white"
+                          className="bg-white/5 p-2 rounded-lg text-xs text-center outline-none border border-white/5 focus:border-purple-500 text-white"
                           value={ej.repeticiones}
                           onChange={(e) => handleEjercicioChange(index, "repeticiones", e.target.value)}
                         />
                       </div>
                       <div className="flex flex-col gap-1">
-                        <span className="text-[8px] uppercase text-gray-500 ml-1">Descanso (s)</span>
+                        <span className="text-[8px] uppercase text-gray-500 ml-1 font-bold">Descanso (s)</span>
                         <input
                           type="number"
-                          className="bg-black/40 p-2 rounded-lg text-xs text-center outline-none border border-white/5 focus:border-purple-500 text-white"
+                          className="bg-white/5 p-2 rounded-lg text-xs text-center outline-none border border-white/5 focus:border-purple-500 text-white"
                           value={ej.descanso}
                           onChange={(e) => handleEjercicioChange(index, "descanso", e.target.value)}
                         />
@@ -224,9 +240,9 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
             </div>
           </fieldset>
 
-          {/* --- SECCIÓN DE PRIVACIDAD ESTILIZADA --- */}
+          {/* PRIVACIDAD */}
           {esMia && (
-            <div className="pt-4 border-t border-white/10 space-y-4"> {/* Bajamos pt-6 a pt-4 y space-y a 4 */}
+            <div className="pt-4 border-t border-white/10 space-y-4">
               <div 
                 className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5 hover:border-purple-500/30 transition-all cursor-pointer"
                 onClick={() => setEsPublica(!esPublica)}
@@ -247,10 +263,9 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
                 </div>
               </div>
 
-              {/* Solo mostramos el contenedor de amigos si NO es pública Y si hay amigos */}
               {!esPublica && friends.length > 0 && (
                 <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
-                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto pr-1 scrollbar-hide">
+                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto pr-1 no-scrollbar">
                     {friends.map((f) => (
                       <label 
                         key={f.id} 
@@ -280,12 +295,13 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
               )}
             </div>
           )}
-          {/* --- BOTONES DE ACCIÓN --- */}
+
+          {/* ACCIONES */}
           <div className="flex flex-col gap-3 mt-8">
             {esMia ? (
               <button
                 type="submit"
-                className="w-full bg-purple-600 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/20 active:scale-95"
+                className="w-full bg-purple-600 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/20 active:scale-95 text-white"
               >
                 {rutina ? "Actualizar Rutina" : "Guardar Rutina"}
               </button>

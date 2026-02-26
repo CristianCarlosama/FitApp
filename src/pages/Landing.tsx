@@ -35,23 +35,44 @@ const Landing: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true); // 1. Empezamos cargando
 
   // Controlar contenido principal
   const [activeView, setActiveView] = useState<ViewType>(() => {
     return (localStorage.getItem("activeView") as ViewType) || "landing";
   });
 
+  // EFECTO DE PERSISTENCIA DE VISTA
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsAuthenticated(true);
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setUserRole(payload.role);
-      } catch (e) {
-        console.error("Error parseando token:", e);
+    localStorage.setItem("activeView", activeView);
+  }, [activeView]);
+
+  // CORRECCIÓN DE TOKEN Y AUTENTICACIÓN INTEGRADA
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+      const storedUser = localStorage.getItem("user");
+
+      if (token) {
+        setIsAuthenticated(true);
+        try {
+          // Extraemos el payload del token para obtener el rol
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          setUserRole(payload.role);
+          
+          if (storedUser) {
+            setUser(JSON.parse(storedUser));
+          }
+        } catch (e) {
+          console.error("Error parseando token:", e);
+        }
       }
-    }
+      // 2. IMPORTANTE: Terminamos de revisar todo antes de quitar el loading
+      setLoading(false); 
+    };
+
+    checkAuth();
   }, []);
 
   console.log("ROL DEL USUARIO:", userRole);
@@ -162,16 +183,12 @@ const Landing: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) setIsAuthenticated(true);
-  }, []);
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user'); 
     setIsAuthenticated(false);
     setUserRole(null);
+    setUser(null);
     setActiveView("landing");
   };
 
@@ -221,6 +238,15 @@ const Landing: React.FC = () => {
       description: 'Sigue tu progreso.' 
     },
   ];
+
+  // 3. Bloqueamos el renderizado hasta que sepamos si hay token o no
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0f111a] flex items-center justify-center">
+        <div className="text-purple-500 font-black animate-pulse">VERIFICANDO SESIÓN...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-[#0f111a] text-white flex font-sans overflow-x-hidden">
@@ -378,7 +404,19 @@ const Landing: React.FC = () => {
       </aside>
 
       <RegisterModal isOpen={showRegister} onClose={() => setShowRegister(false)} />
-      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} onLoginSuccess={() => setIsAuthenticated(true)} />
+      <LoginModal 
+        isOpen={showLogin} 
+        onClose={() => setShowLogin(false)} 
+        onLoginSuccess={() => {
+          setIsAuthenticated(true);
+          // Recargamos el rol desde el storage que acaba de setear el modal
+          const token = localStorage.getItem("token");
+          if(token) {
+            const payload = JSON.parse(atob(token.split(".")[1]));
+            setUserRole(payload.role);
+          }
+        }} 
+      />
     </div>
   );
 };

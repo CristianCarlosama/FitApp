@@ -69,7 +69,7 @@ const LoginModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) => {
       setNotif({ 
         open: true, 
         title: "Error de Acceso", 
-        message: "Credenciales incorrectas, revisa bien pana.", 
+        message: "Credenciales incorrectas.", 
         type: "error" 
       });
     } finally {
