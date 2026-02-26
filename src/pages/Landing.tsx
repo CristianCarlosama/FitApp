@@ -35,7 +35,7 @@ const Landing: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [_user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true); // 1. Empezamos cargando
 
   // Controlar contenido principal
