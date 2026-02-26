@@ -1,25 +1,28 @@
 import React, { useState, useEffect, useRef } from "react";
 import Text from "../../components/Texts";
-import { FaArrowLeft, FaPlay, FaPause, FaUndo, FaBell } from "react-icons/fa";
+import { FaArrowLeft, FaPlay, FaPause, FaUndo, FaClock } from "react-icons/fa";
 
 interface TemporizadorViewProps {
   goBack: () => void;
 }
 
 const TemporizadorView: React.FC<TemporizadorViewProps> = ({ goBack }) => {
-  // Tiempo inicial (ejemplo: 1 minuto = 60000ms)
-  const TIEMPO_INICIAL = 60000; 
-  const [tiempoRestante, setTiempoRestante] = useState<number>(TIEMPO_INICIAL);
+  // Estado para el tiempo que el usuario elige (por defecto 1 min)
+  const [tiempoMaximo, setTiempoMaximo] = useState<number>(60000); 
+  const [tiempoRestante, setTiempoRestante] = useState<number>(60000);
   const [estaCorriendo, setEstaCorriendo] = useState<boolean>(false);
   const idIntervalo = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // --- LÓGICA DEL CÍRCULO INVERSO ---
+  // --- LÓGICA DEL CÍRCULO AZUL ---
   const radio = 135;
   const circunferencia = 2 * Math.PI * radio;
-  
-  // Calculamos el progreso para que se vacíe
-  // A diferencia del cronómetro, aquí restamos la proporción del tiempo que queda
-  const progreso = (tiempoRestante / TIEMPO_INICIAL) * circunferencia;
+  const progreso = (tiempoRestante / tiempoMaximo) * circunferencia;
+
+  const seleccionarTiempo = (ms: number) => {
+    pausarTemporizador();
+    setTiempoMaximo(ms);
+    setTiempoRestante(ms);
+  };
 
   const iniciarTemporizador = () => {
     if (estaCorriendo || tiempoRestante <= 0) return;
@@ -45,7 +48,7 @@ const TemporizadorView: React.FC<TemporizadorViewProps> = ({ goBack }) => {
 
   const reiniciarTemporizador = () => {
     pausarTemporizador();
-    setTiempoRestante(TIEMPO_INICIAL);
+    setTiempoRestante(tiempoMaximo);
   };
 
   const formatearTiempo = (ms: number) => {
@@ -66,57 +69,62 @@ const TemporizadorView: React.FC<TemporizadorViewProps> = ({ goBack }) => {
   return (
     <section className="flex flex-col h-screen p-4 bg-[#0f111a] text-white overflow-hidden">
       {/* Header */}
-      <button onClick={goBack} className="flex items-center text-orange-500 mb-4 hover:text-orange-400 transition-all z-50 w-fit">
+      <button onClick={goBack} className="flex items-center text-blue-400 mb-4 hover:text-blue-300 transition-all z-50 w-fit">
         <FaArrowLeft className="mr-2" /> 
         <span className="font-black uppercase text-xs tracking-widest">Volver</span>
       </button>
 
-      <div className="flex flex-col items-center justify-center flex-grow gap-12">
+      <div className="flex flex-col items-center justify-center flex-grow gap-8">
         
-        {/* CONTENEDOR DEL CÍRCULO INVERSO */}
-        <div className="relative flex items-center justify-center w-72 h-72 md:w-80 md:h-80">
-          {/* Glow de fondo (Naranja para diferenciarlo del cronómetro) */}
-          <div className={`absolute inset-0 bg-orange-600 rounded-full blur-[60px] transition-opacity duration-700 ${estaCorriendo ? 'opacity-20' : 'opacity-5'}`}></div>
+        {/* SELECTOR DE TIEMPO (Solo visible si no está corriendo) */}
+        <div className={`flex gap-3 transition-all duration-500 ${estaCorriendo ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100'}`}>
+          {[60000, 300000, 600000].map((ms) => (
+            <button
+              key={ms}
+              onClick={() => seleccionarTiempo(ms)}
+              className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-tighter border transition-all ${tiempoMaximo === ms ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/20' : 'bg-white/5 border-white/10 text-gray-400'}`}
+            >
+              {ms / 60000} MIN
+            </button>
+          ))}
+        </div>
 
-          {/* SVG Progress Bar Invertido */}
+        {/* CONTENEDOR DEL CÍRCULO BLUE */}
+        <div className="relative flex items-center justify-center w-72 h-72 md:w-80 md:h-80">
+          {/* Glow Azul */}
+          <div className={`absolute inset-0 bg-blue-600 rounded-full blur-[70px] transition-opacity duration-700 ${estaCorriendo ? 'opacity-30' : 'opacity-10'}`}></div>
+
           <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 300 300">
+            <circle cx="150" cy="150" r={radio} fill="transparent" stroke="#1f2232" strokeWidth="6" />
             <circle
               cx="150"
               cy="150"
               r={radio}
               fill="transparent"
-              stroke="#1f2232"
-              strokeWidth="6"
-            />
-            <circle
-              cx="150"
-              cy="150"
-              r={radio}
-              fill="transparent"
-              stroke="url(#timerGrad)"
+              stroke="url(#blueGrad)"
               strokeWidth="10"
               strokeDasharray={circunferencia}
-              // Aquí ocurre la magia: el offset se basa en el tiempo que falta
               strokeDashoffset={circunferencia - progreso}
               strokeLinecap="round"
               className="transition-all duration-75 ease-linear"
             />
             <defs>
-              <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#f97316" />
-                <stop offset="100%" stopColor="#ef4444" />
+              <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#60a5fa" /> {/* text-blue-400 aprox */}
+                <stop offset="100%" stopColor="#2563eb" /> {/* blue-600 */}
               </linearGradient>
             </defs>
           </svg>
 
           {/* Tiempo Central */}
           <div className="relative z-10 flex flex-col items-center">
-            <span className={`text-5xl md:text-6xl font-mono font-black tracking-tighter transition-colors ${tiempoRestante < 10000 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
+            <span className={`text-5xl md:text-6xl font-mono font-black tracking-tighter drop-shadow-lg ${tiempoRestante === 0 ? 'text-blue-400 animate-pulse' : 'text-white'}`}>
               {formatearTiempo(tiempoRestante)}
             </span>
-            {tiempoRestante === 0 && (
-              <Text size="xs" weight="black" className="text-orange-500 mt-2 uppercase tracking-[0.3em]">¡Tiempo!</Text>
-            )}
+            <div className="flex items-center gap-2 mt-2 opacity-40">
+                <FaClock size={10} className="text-blue-400" />
+                <Text size="xs" weight="black" className="uppercase tracking-[0.2em]">{tiempoMaximo / 60000}m set</Text>
+            </div>
           </div>
         </div>
 
@@ -124,32 +132,28 @@ const TemporizadorView: React.FC<TemporizadorViewProps> = ({ goBack }) => {
         <div className="flex items-center gap-8 z-50">
           <button 
             onClick={reiniciarTemporizador}
-            className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all active:scale-90"
+            className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-blue-600/20 hover:border-blue-400/30 transition-all active:scale-90"
           >
-            <FaUndo className="text-gray-400" />
+            <FaUndo className="text-gray-400 hover:text-blue-400" />
           </button>
 
           {!estaCorriendo ? (
             <button 
               onClick={iniciarTemporizador}
-              className="w-24 h-24 rounded-full bg-orange-600 flex items-center justify-center text-white shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:bg-orange-500 transition-all active:scale-95"
+              className="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-[0_0_40px_rgba(37,99,235,0.4)] hover:bg-blue-500 transition-all active:scale-95"
             >
               <FaPlay size={24} className="ml-1" />
             </button>
           ) : (
             <button 
               onClick={pausarTemporizador}
-              className="w-24 h-24 rounded-full border-2 border-orange-600 flex items-center justify-center text-orange-500 hover:bg-orange-600/10 transition-all active:scale-95"
+              className="w-24 h-24 rounded-full border-2 border-blue-400 flex items-center justify-center text-blue-400 hover:bg-blue-400/10 transition-all active:scale-95 shadow-[0_0_20px_rgba(96,165,250,0.2)]"
             >
               <FaPause size={24} />
             </button>
           )}
 
-          <div className="w-14 h-14 flex items-center justify-center">
-            {tiempoRestante < 10000 && tiempoRestante > 0 && (
-              <FaBell className="text-orange-500 animate-bounce" />
-            )}
-          </div>
+          <div className="w-14 h-14" /> {/* Espaciador para equilibrio visual */}
         </div>
       </div>
     </section>
