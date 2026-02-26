@@ -55,7 +55,7 @@ interface Ejercicio {
   foto_3?: string;
 }
 
-const clases = ["Pierna", "Pecho", "Espalda", "Hombros", "Brazos", "Pantorrilla", "Abdomen"];
+const clases = ["Piernas", "Pecho", "Espalda", "Hombros", "Brazos", "Pantorrilla", "Abdomen"];
 
 
 interface EjerciciosViewProps {
@@ -76,7 +76,13 @@ const EjerciciosView: React.FC<EjerciciosViewProps> = ({ goBack }) => {
   };
 
   const filteredEjercicios = selectedClase
-    ? ejercicios.filter((e) => e.clase === selectedClase)
+    ? ejercicios.filter((e) => {
+        // Si el campo clase no existe, no lo muestra
+        if (!e.clase) return false;
+        
+        // Limpiamos espacios y pasamos a minúsculas para comparar exacto
+        return e.clase.trim().toLowerCase() === selectedClase.trim().toLowerCase();
+      })
     : ejercicios;
 
   return (
