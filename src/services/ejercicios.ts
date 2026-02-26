@@ -1,5 +1,6 @@
 import api from "./api";
 
+
 export const getEjercicios = async () => {
   const res = await api.get("/ejercicios");
   return res.data;
@@ -16,7 +17,8 @@ export const updateEjercicio = async (id: number, ejercicio: any) => {
 };
 
 export const deleteEjercicio = async (id: number) => {
-  await api.delete(`/ejercicios/${id}`);
+  const res = await api.delete(`/ejercicios/${id}`);
+  return res.data;
 };
 
 export const calificarEjercicio = async (id: number, puntos: number, user_id: number) => {

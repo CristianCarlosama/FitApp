@@ -36,19 +36,16 @@ const Landing: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [_user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true); // 1. Empezamos cargando
+  const [loading, setLoading] = useState(true);
 
-  // Controlar contenido principal
   const [activeView, setActiveView] = useState<ViewType>(() => {
     return (localStorage.getItem("activeView") as ViewType) || "landing";
   });
 
-  // EFECTO DE PERSISTENCIA DE VISTA
   useEffect(() => {
     localStorage.setItem("activeView", activeView);
   }, [activeView]);
 
-  // CORRECCIÓN DE TOKEN Y AUTENTICACIÓN INTEGRADA
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem("token");
@@ -57,7 +54,6 @@ const Landing: React.FC = () => {
       if (token) {
         setIsAuthenticated(true);
         try {
-          // Extraemos el payload del token para obtener el rol
           const payload = JSON.parse(atob(token.split(".")[1]));
           setUserRole(payload.role);
           
@@ -68,14 +64,11 @@ const Landing: React.FC = () => {
           console.error("Error parseando token:", e);
         }
       }
-      // 2. IMPORTANTE: Terminamos de revisar todo antes de quitar el loading
       setLoading(false); 
     };
 
     checkAuth();
   }, []);
-
-  console.log("ROL DEL USUARIO:", userRole);
 
   const renderView = () => {
     switch (activeView) {
@@ -239,7 +232,6 @@ const Landing: React.FC = () => {
     },
   ];
 
-  // 3. Bloqueamos el renderizado hasta que sepamos si hay token o no
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f111a] flex items-center justify-center">
@@ -312,7 +304,7 @@ const Landing: React.FC = () => {
         </div>
       </aside>
 
-      {/* CONTENIDO PRINCIPAL */}
+      {/* CONTENIDO PRINCIPAL - Eliminado min-h-screen para que no fuerce altura total */}
       <main className="flex-1 flex flex-col min-w-0 lg:ml-72 xl:mr-80 transition-all duration-300 z-10 relative">
         
         {/* TOPBAR MÓVIL */}
@@ -343,55 +335,54 @@ const Landing: React.FC = () => {
           />
         </header>
 
-        {/* CONTENEDOR DE TARJETAS */}
-        {activeView === "landing" ? (
-          <div className="p-6 md:p-10 w-full max-w-none mx-auto space-y-12 pb-[50px]">
-            
-            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-white/10 p-8 md:p-12">
-              <div className="relative z-10 max-w-2xl">
-                <Text size="4xl" weight="bold" className="mb-4">Lleva tu cuerpo al <span className="text-purple-400">Siguiente Nivel</span></Text>
-                <Text className="text-gray-400 mb-6 italic">Gestiona tus rutinas, mide tus tiempos y alcanza tus metas con tecnología de punta.</Text>
-                <button className="px-8 py-3 bg-white text-black font-bold rounded-xl shadow-xl hover:scale-105 transition-transform">Empezar Ahora</button>
-              </div>
-            </section>
+        {/* CONTENEDOR DINÁMICO CORREGIDO */}
+        <div className="w-full flex-none"> {/* Cambié flex-1 por flex-none */}
+          {activeView === "landing" ? (
+            <div className="p-6 md:p-10 w-full max-w-none mx-auto space-y-12">
+              {/* Contenido de la landing... */}
+              <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-white/10 p-8 md:p-12">
+                <div className="relative z-10 max-w-2xl">
+                  <Text size="4xl" weight="bold" className="mb-4">Lleva tu cuerpo al <span className="text-purple-400">Siguiente Nivel</span></Text>
+                  <Text className="text-gray-400 mb-6 italic">Gestiona tus rutinas, mide tus tiempos y alcanza tus metas con tecnología de punta.</Text>
+                  <button className="px-8 py-3 bg-white text-black font-bold rounded-xl shadow-xl hover:scale-105 transition-transform">Empezar Ahora</button>
+                </div>
+              </section>
 
-            <section>
-              <Text size="2xl" weight="bold" className="mb-8">Herramientas</Text>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-6">
-                {cards.map((card, idx) => (
-                  <Card
-                    key={idx}
-                    title={card.title}
-                    description={card.description}
-                    icon={<span className="text-3xl mb-2 block">{card.icon}</span>}
-                    onClick={() => 
-                      setActiveView(card.view as ViewType
-                      )}
-                  />
-                ))}
-              </div>
-            </section>
-
-            {/* div invisible que empuja todo hacia arriba */}
-            <div className="h-5 w-full pointer-events-none"></div>
-          </div>
+              <section>
+                <Text size="2xl" weight="bold" className="mb-8">Herramientas</Text>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-6">
+                  {cards.map((card, idx) => (
+                    <Card
+                      key={idx}
+                      title={card.title}
+                      description={card.description}
+                      icon={<span className="text-3xl mb-2 block">{card.icon}</span>}
+                      onClick={() => setActiveView(card.view as ViewType)}
+                    />
+                  ))}
+                </div>
+              </section>
+            </div>
           ) : (
-            renderView()
-        )}
+            <div className="h-auto min-h-0"> {/* Wrapper para neutralizar cualquier min-h-screen interno */}
+              {renderView()}
+            </div>
+          )}
+        </div>
 
-        {/* PUBLICIDAD FIJA ABAJO */}
-        <div className="fixed bottom-0 left-0 lg:left-72 xl:right-80 right-0 z-40 p-4 bg-gradient-to-t from-[#0f111a] via-[#0f111a] to-transparent">
-          <div className="w-full">
+        {/* PUBLICIDAD PEGADA AL CONTENIDO */}
+        <footer className="w-full p-2"> 
+          <div className="bg-gradient-to-t from-black/20 to-transparent p-4 rounded-3xl border border-white/5">
             <AdCard label="Publicidad Patrocinada - Haz clic aquí" />
           </div>
-        </div>
+        </footer>
       </main>
 
       {/* SIDEBAR DERECHA */}
       <aside className="hidden xl:flex fixed top-0 right-0 h-full w-80 bg-[#161925] border-l border-white/10 p-6 flex-col z-50">
         <Text size="lg" weight="bold" className="mb-6 text-green-400">Recomendados</Text>
-        <div className="space-y-6">
-          <div className="rounded-2xl overflow-hidden aspect-video bg-gray-800 border border-white/5 relative group">
+        <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar">
+          <div className="rounded-2xl overflow-hidden aspect-video bg-gray-800 border border-white/5 relative group shrink-0">
             <img 
               src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=400" 
               className="opacity-50 group-hover:scale-110 transition duration-500 w-full h-full object-cover" 
@@ -409,7 +400,6 @@ const Landing: React.FC = () => {
         onClose={() => setShowLogin(false)} 
         onLoginSuccess={() => {
           setIsAuthenticated(true);
-          // Recargamos el rol desde el storage que acaba de setear el modal
           const token = localStorage.getItem("token");
           if(token) {
             const payload = JSON.parse(atob(token.split(".")[1]));

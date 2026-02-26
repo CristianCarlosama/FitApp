@@ -6,7 +6,7 @@ interface CardProps {
   description: string;
   icon: React.ReactNode;
   onClick?: () => void;
-  className?: string; // Para flexibilidad extra
+  className?: string; 
 }
 
 const Card: React.FC<CardProps> = ({ title, description, icon, onClick, className = "" }) => {

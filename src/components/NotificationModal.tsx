@@ -9,7 +9,7 @@ interface NotificationModalProps {
   type: NotificationType;
   title: string;
   message: string;
-  onConfirm?: () => void; // Para cuando sea borrar o confirmar
+  onConfirm?: () => void; 
   onClose: () => void;
 }
 

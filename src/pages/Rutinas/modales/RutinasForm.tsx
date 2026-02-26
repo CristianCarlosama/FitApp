@@ -59,7 +59,7 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
         const data = await res.json();
         setFriends(data);
       } catch (err) {
-        console.log("No se pudieron cargar los amigos", err);
+        console.error("No se pudieron cargar los amigos", err);
       }
     };
     fetchFriends();

@@ -2,11 +2,10 @@ import React from "react";
 
 interface TextProps {
   children: React.ReactNode;
-  // Cambiamos size por algo más semántico pero mantenemos compatibilidad
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "6xl";
   weight?: "thin" | "normal" | "medium" | "semibold" | "bold" | "extrabold" | "black";
   variant?: "default" | "muted" | "gradient" | "success" | "danger";
-  as?: "p" | "span" | "h1" | "h2" | "h3" | "h4" | "label"; // Para SEO y accesibilidad
+  as?: "p" | "span" | "h1" | "h2" | "h3" | "h4" | "label"; 
   className?: string;
 }
 
@@ -44,7 +43,6 @@ const Text: React.FC<TextProps> = ({
   const variants = {
     default: "text-white",
     muted: "text-gray-400",
-    // El gradiente insignia de FitApp
     gradient: "bg-gradient-to-r from-purple-400 via-fuchsia-500 to-blue-500 bg-clip-text text-transparent",
     success: "text-green-400",
     danger: "text-red-400",

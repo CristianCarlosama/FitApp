@@ -5,6 +5,7 @@ import RutinaForm from "./modales/RutinasForm";
 import RutinaDetalle from "./modales/RutinaInfo"; 
 import NotificationModal from "../../components/NotificationModal";
 import type { NotificationType } from "../../components/NotificationModal";
+import CardLayout from "../../components/CardLayout";
 import { getRutinas, deleteRutina } from "../../services/rutinas";
 import { 
   FaChevronLeft, FaChevronRight, FaStar, FaClock, 
@@ -12,7 +13,7 @@ import {
 } from "react-icons/fa";
 
 // --- CATEGORÍAS ---
-const categoriasFiltro = ["Mías", "Públicas", "Pecho", "Pierna", "Espalda", "Hombros", "Brazos", "Abdomen"];
+const categoriasFiltro = ["Mías", "Públicas", "Pecho", "Alta", "Media", "Baja"];
 
 // --- CAROUSEL REUTILIZABLE ---
 const Carousel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -132,7 +133,7 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
   );
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0f111a] text-white font-sans overflow-x-hidden">
+    <div className="flex flex-col h-auto w-full font-sans">
       
       {/* HEADER */}
       <header className="sticky top-0 z-40 bg-[#0f111a]/95 backdrop-blur-xl border-b border-white/5 p-4 md:p-6">
@@ -142,7 +143,7 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
               <FaChevronLeft className="text-purple-500" />
               <div className="flex flex-col items-start">
                 <Text size="2xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none">FITAPP</Text>
-                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase">{filtroActivo || "Rutinas"}</Text>
+                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase">Rutinas / {filtroActivo}</Text>
               </div>
             </button>
             <SearchInput value={searchTerm} onChange={setSearchTerm} placeholder="Buscar por nombre o músculo..." />
@@ -157,7 +158,7 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
         </div>
       </header>
 
-      <main className="flex-1 p-4 md:p-8 max-w-[1400px] mx-auto w-full pb-24">
+      <main className="p-4 md:p-8 max-w-[1400px] mx-auto w-full">
         <div className="flex justify-between items-center mb-8">
           <Text size="2xl" weight="black" variant="gradient">MIS RUTINAS</Text>
           <button onClick={() => { setEditingRutina(null); setShowForm(true); }} className="bg-purple-600 hover:bg-purple-700 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">+ Nueva Rutina</button>
@@ -165,10 +166,10 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {rutinasFinales.map((rutina) => (
-            <div
+            <CardLayout
               key={rutina.id}
               onClick={() => setSelectedRutinaInfo(rutina)}
-              className="group relative bg-[#161925] rounded-[2rem] border border-white/5 overflow-hidden hover:border-purple-500/50 transition-all duration-300 flex flex-col shadow-xl h-[420px] cursor-pointer"
+              className="h-[420px]"
             >
               {/* PANEL DE BOTONES (Efecto Pestaña asomada) */}
               {rutina.es_mia && (
@@ -235,7 +236,7 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                   <span className="text-[10px] uppercase tracking-wider">{rutina.duracion || "45"} MIN</span>
                 </div>
               </div>
-            </div>
+            </CardLayout>
           ))}
         </div>
       </main>

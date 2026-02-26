@@ -51,7 +51,6 @@ const LoginModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) => {
       localStorage.setItem('token', res.token);
       localStorage.setItem('user', JSON.stringify(res.user));
 
-      // Disparamos éxito
       setNotif({ 
         open: true, 
         title: "¡Éxito!", 

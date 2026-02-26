@@ -36,13 +36,18 @@ const RutinaDetalle = ({ rutina, onClose }: any) => {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#0f111a]/95 backdrop-blur-xl" onClick={onClose} />
+      <div 
+        className="absolute inset-0 bg-[#0f111a]/95 backdrop-blur-xl" 
+        onClick={onClose} 
+      />
       
       <div className="relative bg-[#161925] border border-white/10 w-full max-w-lg max-h-[80vh] rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
         
-        {/* Header Compacto - Reducido de h-48 a h-32 */}
         <div className="relative h-32 flex-shrink-0 bg-gradient-to-b from-purple-600/10 to-transparent flex items-end px-8 pb-4">
-          <button onClick={onClose} className="absolute top-6 right-6 z-20 bg-black/40 p-2 rounded-full text-white hover:bg-purple-600 transition-all">
+          <button 
+            onClick={onClose} 
+            className="absolute top-6 right-6 z-20 bg-black/40 p-2 rounded-full text-white hover:bg-purple-600 transition-all"
+          >
             <FaTimes size={14} />
           </button>
           
@@ -61,9 +66,7 @@ const RutinaDetalle = ({ rutina, onClose }: any) => {
           </div>
         </div>
 
-        {/* Contenido con Scroll */}
         <div className="flex-1 overflow-y-auto p-8 pt-2 no-scrollbar">
-          {/* Descripción más pequeña y discreta */}
           <div className="mb-6">
             <p className="text-gray-500 text-[11px] leading-relaxed border-l-2 border-purple-500/30 pl-4 py-1 italic">
               {rutina.descripcion || "Sin descripción establecida para este plan."}

@@ -41,7 +41,6 @@ const RegisterModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    // Si el nombre está dentro de las llaves de Medidas
     const isMedida = ['peso','pecho','cintura','pierna','pantorrilla','brazo','espalda'].includes(name);
     
     if (isMedida) {
@@ -91,7 +90,6 @@ const RegisterModal: React.FC<Props> = ({ isOpen, onClose }) => {
         type: "success" 
       });
 
-      // Esperamos 2 segundos para que vea el mensaje y cerramos
       setTimeout(() => {
         onClose();
       }, 2000);
