@@ -137,7 +137,11 @@ const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
             <div key={ej.id} className="group bg-[#161925] rounded-[2rem] border border-white/5 overflow-hidden hover:border-purple-500/50 transition-all duration-300 flex flex-col shadow-xl">
               <div className="relative h-40 bg-black/40 overflow-hidden">
                 <img 
-                  src={ej.imagen_url || 'https://via.placeholder.com/300x200?text=Ares+Fit'} 
+                  src={
+                    ej.foto_1 
+                      ? `${import.meta.env.VITE_STORAGE_URL}/${ej.foto_1}` 
+                      : 'https://via.placeholder.com/300x200?text=Ares+Fit'
+                  } 
                   alt={ej.nombre} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-80 group-hover:opacity-100" 
                 />

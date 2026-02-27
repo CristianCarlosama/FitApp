@@ -1,18 +1,21 @@
 import api from "./api";
 
+export const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || "http://localhost:8000/storage";
 
 export const getEjercicios = async () => {
   const res = await api.get("/ejercicios");
   return res.data;
 };
 
-export const createEjercicio = async (ejercicio: any) => {
-  const res = await api.post("/ejercicios", ejercicio);
+export const createEjercicio = async (formData: FormData) => {
+  const res = await api.post("/ejercicios", formData);
   return res.data;
 };
 
-export const updateEjercicio = async (id: number, ejercicio: any) => {
-  const res = await api.put(`/ejercicios/${id}`, ejercicio);
+export const updateEjercicio = async (id: number, formData: FormData) => {
+  formData.append("_method", "PUT");
+  
+  const res = await api.post(`/ejercicios/${id}`, formData);
   return res.data;
 };
 

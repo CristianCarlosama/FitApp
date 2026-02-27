@@ -9,10 +9,15 @@ interface Props {
 }
 
 const EjercicioDetalleModal: React.FC<Props> = ({ exercise, onClose }) => {
+  const getImageUrl = (url: string | null) => {
+    if (!url) return "";
+    return url.startsWith('http') ? url : `${import.meta.env.VITE_STORAGE_URL}/${url}`;
+  };
+
   const media = [
-    { type: 'image', url: exercise.foto_1 },
-    { type: 'image', url: exercise.foto_2 },
-    { type: 'image', url: exercise.foto_3 },
+    { type: 'image', url: getImageUrl(exercise.foto_1 || null) },
+    { type: 'image', url: getImageUrl(exercise.foto_2 || null) },
+    { type: 'image', url: getImageUrl(exercise.foto_3 || null) },
     { type: 'video', url: exercise.video_url }
   ].filter(item => item.url);
 
@@ -38,7 +43,11 @@ const EjercicioDetalleModal: React.FC<Props> = ({ exercise, onClose }) => {
             {media.map((item, i) => (
               <div key={i} className="flex-shrink-0 w-full h-full snap-center relative">
                 {item.type === 'image' ? (
-                  <img src={item.url} className="w-full h-full object-cover" alt={exercise.nombre} />
+                  <img 
+                    src={item.url} 
+                    className="w-full h-full object-cover" 
+                    alt={exercise.nombre} 
+                  />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-purple-900/10">
                     <a 

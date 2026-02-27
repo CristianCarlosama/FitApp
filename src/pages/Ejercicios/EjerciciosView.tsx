@@ -166,19 +166,23 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
               >
                 <div className="relative h-40 bg-gray-900 overflow-hidden shrink-0">
                   {e.foto_1 ? (
-                    <img src={e.foto_1} alt={e.nombre} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <img 
+                      src={`${import.meta.env.VITE_STORAGE_URL}/${e.foto_1}`} 
+                      alt={e.nombre} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/10 to-black">
                       <FaDumbbell className="text-white/5 text-5xl" />
                     </div>
                   )}
+                  
                   <div className="absolute top-4 left-4">
                     <span className="bg-purple-600 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg">
                       {e.clase}
                     </span>
                   </div>
                 </div>
-
                 <div className="p-5 md:p-6 flex flex-col flex-1">
                   <Text size="lg" weight="black" className="uppercase tracking-tight mb-1 group-hover:text-purple-400 transition-colors truncate">
                     {e.nombre}

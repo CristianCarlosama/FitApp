@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Text from "../../../components/Texts";
-import Select from "../../../components/Selects"
-import { FaPlus, FaTrash } from "react-icons/fa";
+import Select from "../../../components/Selects";
+import { FaPlus, FaTrash, FaImage, FaVideo } from "react-icons/fa";
 import { getMusculos } from "../../../services/musculos";
-
 
 interface Musculo {
   id: number;
@@ -31,10 +30,17 @@ const EjercicioForm: React.FC<Props> = ({
   const [musculosDB, setMusculosDB] = useState<Musculo[]>([]);
   const [formData, setFormData] = useState({
     nombre: "",
-    clase: "Personalizado", // Backup string
-    foto_1: "",
+    clase: "Personalizado",
     descripcion: "",
+    video_url: "", // Nueva columna
     musculo_principal_id: "",
+  });
+
+  // Estado para manejar los archivos físicamente
+  const [fotos, setFotos] = useState<{ [key: string]: File | null }>({
+    foto_1: null,
+    foto_2: null,
+    foto_3: null,
   });
 
   const [secundarios, setSecundarios] = useState<Secundario[]>([]);
@@ -62,8 +68,8 @@ const EjercicioForm: React.FC<Props> = ({
       setFormData({
         nombre: ejercicio.nombre || "",
         clase: ejercicio.clase || "",
-        foto_1: ejercicio.foto_1 || "", 
         descripcion: ejercicio.descripcion || "",
+        video_url: ejercicio.video_url || "",
         musculo_principal_id: ejercicio.musculos?.find((m: any) => m.pivot.es_principal)?.id.toString() || ""
       });
 
@@ -74,6 +80,12 @@ const EjercicioForm: React.FC<Props> = ({
       setSecundarios(sec || []);
     }
   }, [ejercicio]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFotos({ ...fotos, [e.target.name]: e.target.files[0] });
+    }
+  };
 
   const addSecundario = () => {
     setSecundarios([...secundarios, { id: 0, intensidad: "Medio" }]);
@@ -97,17 +109,29 @@ const EjercicioForm: React.FC<Props> = ({
 
     const secundariosValidos = secundarios.filter(s => s.id !== 0);
 
-    const dataParaBackend = {
-      ...formData,
-      musculo_principal_id: parseInt(formData.musculo_principal_id),
-      secundarios: secundariosValidos,
-      rutina_id: null,
-      series: 0,
-      repeticiones: 0,
-      descanso: 0
-    };
+    // USAMOS FORMDATA PARA ENVIAR ARCHIVOS
+    const data = new FormData();
+    data.append("nombre", formData.nombre);
+    data.append("clase", formData.clase);
+    data.append("descripcion", formData.descripcion);
+    data.append("video_url", formData.video_url);
+    data.append("musculo_principal_id", formData.musculo_principal_id);
+    
+    // Enviamos los secundarios como JSON string para que Laravel lo procese
+    data.append("secundarios", JSON.stringify(secundariosValidos));
 
-    onSuccess(dataParaBackend, !!ejercicio);
+    // Adjuntar las fotos si fueron seleccionadas
+    if (fotos.foto_1) data.append("foto_1", fotos.foto_1);
+    if (fotos.foto_2) data.append("foto_2", fotos.foto_2);
+    if (fotos.foto_3) data.append("foto_3", fotos.foto_3);
+
+    // Campos extra requeridos por tu lógica original
+    data.append("rutina_id", "");
+    data.append("series", "0");
+    data.append("repeticiones", "0");
+    data.append("descanso", "0");
+
+    onSuccess(data, !!ejercicio);
   };
 
   return (
@@ -181,15 +205,42 @@ const EjercicioForm: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* URL Imagen */}
+          {/* CARGA DE IMÁGENES (LAS 3 FOTOS) */}
+          <div className="space-y-3">
+            <label className="text-[10px] font-black uppercase text-gray-500 ml-2">Fotos del Ejercicio (Máximo 3)</label>
+            <div className="grid grid-cols-1 gap-2">
+              {["foto_1", "foto_2", "foto_3"].map((name, idx) => (
+                <div key={name} className="relative group">
+                  <input 
+                    type="file" 
+                    name={name} 
+                    onChange={handleFileChange} 
+                    accept="image/*" 
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                  />
+                  <div className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4 group-hover:border-purple-500/50 transition-all">
+                    <FaImage className="text-purple-500" />
+                    <span className="text-[10px] text-gray-400 uppercase font-bold truncate">
+                      {fotos[name] ? (fotos[name] as File).name : `Seleccionar Foto ${idx + 1}`}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* URL Video */}
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-gray-500 ml-2">URL del Recurso (GIF/Imagen)</label>
-            <input 
-              className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-purple-500 transition-all"
-              placeholder="https://..."
-              value={formData.foto_1}
-              onChange={e => setFormData({...formData, foto_1: e.target.value})}
-            />
+            <label className="text-[10px] font-black uppercase text-gray-500 ml-2">URL del Video (Youtube/Vimeo)</label>
+            <div className="relative">
+              <FaVideo className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-500/50" />
+              <input 
+                className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl text-white outline-none focus:border-purple-500 transition-all"
+                placeholder="https://youtube.com/..."
+                value={formData.video_url}
+                onChange={e => setFormData({...formData, video_url: e.target.value})}
+              />
+            </div>
           </div>
 
           {/* Descripción */}
@@ -211,7 +262,7 @@ const EjercicioForm: React.FC<Props> = ({
           >
             {ejercicio ? "Guardar Cambios" : "Publicar Ejercicio"}
           </button>
-          <button onClick={onClose} className="text-gray-500 font-bold uppercase text-[10px] hover:text-white transition-all py-2">
+          <button onClick={onClose} className="text-gray-500 font-bold uppercase text-[10px] hover:text-white transition-all py-2 text-center">
             Descartar
           </button>
         </footer>
