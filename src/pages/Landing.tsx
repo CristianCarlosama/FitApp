@@ -51,6 +51,7 @@ const Landing: React.FC = () => {
     message: "",
   });
 
+  const API_BASE_URL = import.meta.env.VITE_URL_APP;
   const closeApiModal = () => setApiModal(prev => ({ ...prev, isOpen: false }));
 
   const [activeView, setActiveView] = useState<ViewType>(() => {
@@ -98,12 +99,12 @@ const Landing: React.FC = () => {
           return;
       }
 
-      const response = await axios.post('http://127.0.0.1:8000/api/entrenamientos', data, {
-          headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-          }
+      const response = await axios.post(`${API_BASE_URL}/entrenamientos`, data, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
       });
 
       if (response.status === 201 || response.status === 200) {
