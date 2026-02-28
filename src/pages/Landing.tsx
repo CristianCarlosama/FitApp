@@ -51,7 +51,6 @@ const Landing: React.FC = () => {
     message: "",
   });
 
-  const API_BASE_URL = import.meta.env.VITE_URL_APP;
   const closeApiModal = () => setApiModal(prev => ({ ...prev, isOpen: false }));
 
   const [activeView, setActiveView] = useState<ViewType>(() => {
@@ -99,7 +98,7 @@ const Landing: React.FC = () => {
           return;
       }
 
-      const response = await axios.post(`${API_BASE_URL}/entrenamientos`, data, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/entrenamientos`, data, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -115,7 +114,6 @@ const Landing: React.FC = () => {
             message: "¡La rompiste, máquina! Tu progreso ya está en la base de datos."
           });
 
-          // Pequeño delay para que lean el éxito antes de cambiar la vista
           setTimeout(() => {
             setActiveView("landing");
             setActiveWorkout(null);
