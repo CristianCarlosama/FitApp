@@ -32,11 +32,10 @@ const EjercicioForm: React.FC<Props> = ({
     nombre: "",
     clase: "Personalizado",
     descripcion: "",
-    video_url: "", // Nueva columna
+    video_url: "", 
     musculo_principal_id: "",
   });
 
-  // Estado para manejar los archivos físicamente
   const [fotos, setFotos] = useState<{ [key: string]: File | null }>({
     foto_1: null,
     foto_2: null,
@@ -73,10 +72,10 @@ const EjercicioForm: React.FC<Props> = ({
         musculo_principal_id: ejercicio.musculos?.find((m: any) => m.pivot.es_principal)?.id.toString() || ""
       });
 
+      // Músculos secundarios
       const sec = ejercicio.musculos
         ?.filter((m: any) => !m.pivot.es_principal)
         .map((m: any) => ({ id: m.id, intensidad: m.pivot.intensidad }));
-      
       setSecundarios(sec || []);
     }
   }, [ejercicio]);
@@ -109,7 +108,7 @@ const EjercicioForm: React.FC<Props> = ({
 
     const secundariosValidos = secundarios.filter(s => s.id !== 0);
 
-    // USAMOS FORMDATA PARA ENVIAR ARCHIVOS
+    // FORMDATA PARA ENVIAR ARCHIVOS
     const data = new FormData();
     data.append("nombre", formData.nombre);
     data.append("clase", formData.clase);
@@ -117,15 +116,12 @@ const EjercicioForm: React.FC<Props> = ({
     data.append("video_url", formData.video_url);
     data.append("musculo_principal_id", formData.musculo_principal_id);
     
-    // Enviamos los secundarios como JSON string para que Laravel lo procese
     data.append("secundarios", JSON.stringify(secundariosValidos));
 
-    // Adjuntar las fotos si fueron seleccionadas
     if (fotos.foto_1) data.append("foto_1", fotos.foto_1);
     if (fotos.foto_2) data.append("foto_2", fotos.foto_2);
     if (fotos.foto_3) data.append("foto_3", fotos.foto_3);
 
-    // Campos extra requeridos por tu lógica original
     data.append("rutina_id", "");
     data.append("series", "0");
     data.append("repeticiones", "0");
@@ -205,27 +201,38 @@ const EjercicioForm: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* CARGA DE IMÁGENES (LAS 3 FOTOS) */}
+          {/* CARGA DE IMÁGENES */}
           <div className="space-y-3">
             <label className="text-[10px] font-black uppercase text-gray-500 ml-2">Fotos del Ejercicio (Máximo 3)</label>
             <div className="grid grid-cols-1 gap-2">
-              {["foto_1", "foto_2", "foto_3"].map((name, idx) => (
-                <div key={name} className="relative group">
-                  <input 
-                    type="file" 
-                    name={name} 
-                    onChange={handleFileChange} 
-                    accept="image/*" 
-                    className="absolute inset-0 opacity-0 cursor-pointer z-10" 
-                  />
-                  <div className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4 group-hover:border-purple-500/50 transition-all">
-                    <FaImage className="text-purple-500" />
-                    <span className="text-[10px] text-gray-400 uppercase font-bold truncate">
-                      {fotos[name] ? (fotos[name] as File).name : `Seleccionar Foto ${idx + 1}`}
-                    </span>
+              {["foto_1", "foto_2", "foto_3"].map((name, idx) => {
+                // Lógica para mostrar nombre o URL existente
+                const fileSelected = fotos[name];
+                const existingUrl = ejercicio ? ejercicio[name] : null;
+
+                return (
+                  <div key={name} className="relative group">
+                    <input 
+                      type="file" 
+                      name={name} 
+                      onChange={handleFileChange} 
+                      accept="image/*" 
+                      className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                    />
+                    <div className={`w-full bg-white/5 border ${fileSelected || existingUrl ? 'border-purple-500/50' : 'border-white/10'} rounded-2xl p-4 flex items-center gap-4 group-hover:border-purple-500 transition-all`}>
+                      <FaImage className={fileSelected || existingUrl ? "text-purple-400" : "text-gray-600"} />
+                      <div className="flex flex-col truncate">
+                        <span className="text-[10px] text-gray-400 uppercase font-bold truncate">
+                          {fileSelected ? (fileSelected as File).name : (existingUrl ? `Actual: ${existingUrl.split('/').pop()}` : `Seleccionar Foto ${idx + 1}`)}
+                        </span>
+                        {existingUrl && !fileSelected && (
+                          <span className="text-[8px] text-purple-400 font-black uppercase">En la nube (Click para cambiar)</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

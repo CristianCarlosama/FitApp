@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import { getEjercicios } from "../../services/ejercicios";
+import { getMusculos } from "../../services/musculos"; // <--- Importamos el servicio
 import SearchInput from "../../components/SearchInput";
 import Text from "../../components/Texts";
 import CardLayout from "../../components/CardLayout";
 import { FaDumbbell, FaChevronLeft, FaFire, FaSearch } from "react-icons/fa";
 import EjercicioDetalleModal from "./modales/EjercicioDetalle";
 
-// --- COMPONENTE CAROUSEL REUTILIZABLE ---
+// --- COMPONENTE CAROUSEL REUTILIZABLE (Se mantiene igual) ---
 const Carousel: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
       const { scrollLeft, clientWidth } = scrollRef.current;
@@ -26,11 +26,9 @@ const Carousel: React.FC<{ children: React.ReactNode; className?: string }> = ({
       >
         <FaChevronLeft size={14} className="text-white" />
       </button>
-
       <div ref={scrollRef} className={`flex overflow-x-auto gap-3 pb-2 no-scrollbar scroll-smooth ${className}`}>
         {children}
       </div>
-
       <button 
         onClick={() => scroll("right")}
         className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/10 backdrop-blur-md p-2.5 rounded-full flex items-center justify-center border border-white/10 hover:bg-purple-600 transition-all shadow-lg"
@@ -59,25 +57,35 @@ export interface Ejercicio {
   foto_3?: string;
 }
 
-const clases = ["Piernas", "Pecho", "Espalda", "Hombros", "Brazos", "Pantorrilla", "Abdomen"];
+// Borramos la constante 'clases' quemada que tenías aquí
 
 const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
   const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);
+  const [musculosDB, setMusculosDB] = useState<{id: number, nombre: string}[]>([]); // <--- Estado para los filtros
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClase, setSelectedClase] = useState<string | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<Ejercicio | null>(null);
 
   useEffect(() => {
-    fetchEjercicios();
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        // Ejecutamos ambas peticiones en paralelo
+        const [ejerciciosData, musculosData] = await Promise.all([
+          getEjercicios(),
+          getMusculos()
+        ]);
+        setEjercicios(ejerciciosData);
+        setMusculosDB(musculosData);
+      } catch (error) {
+        console.error("Error cargando datos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
-
-  const fetchEjercicios = async () => {
-    setLoading(true);
-    const data = await getEjercicios();
-    setEjercicios(data);
-    setLoading(false);
-  };
 
   const filteredEjercicios = ejercicios.filter((e) => {
     const nombre = e.nombre?.toLowerCase() || "";
@@ -86,7 +94,6 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
     
     const matchesSearch = nombre.includes(busqueda) || descripcion.includes(busqueda);
 
-    // Filtrado por Categoría
     let matchesCategory = true;
     if (selectedClase) {
       const claseNormalizada = selectedClase.trim().toLowerCase();
@@ -101,13 +108,15 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
 
   if (loading) return (
     <div className="min-h-screen bg-[#0f111a] flex items-center justify-center text-white font-black uppercase tracking-widest">
-      Cargando Ejercicios...
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        Cargando Arsenal...
+      </div>
     </div>
   );
 
   return (
     <div className="flex flex-col h-auto w-full font-sans">
-      
       <header className="sticky top-0 z-50 bg-[#0f111a]/95 backdrop-blur-xl border-b border-white/5 p-4 md:p-6">
         <div className="max-w-[1400px] mx-auto flex flex-col gap-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -115,7 +124,9 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
               <FaChevronLeft className="text-purple-500 text-xl" />
               <div className="flex flex-col items-start">
                 <Text size="2xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none">FITAPP</Text>
-                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase">Ejercicios / {selectedClase}</Text>
+                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase">
+                    Ejercicios {selectedClase ? `/ ${selectedClase}` : ""}
+                </Text>
               </div>
             </button>
 
@@ -126,20 +137,22 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
             />
           </div>
 
+          {/* CARRUSEL DINÁMICO DESDE BDD */}
           <Carousel>
             <button
               onClick={() => setSelectedClase(null)}
-              className={`flex-shrink-0 px-6 py-2 rounded-full text-[10px] font-black uppercase border transition-all ${selectedClase === null ? "bg-purple-600 border-purple-600 shadow-lg shadow-purple-500/30" : "bg-white/5 border-white/10 text-gray-400"}`}
+              className={`flex-shrink-0 px-6 py-2 rounded-full text-[10px] font-black uppercase border transition-all ${selectedClase === null ? "bg-purple-600 border-purple-600 shadow-lg shadow-purple-500/30 text-white" : "bg-white/5 border-white/10 text-gray-400"}`}
             >
               Todos 
             </button>
-            {clases.map((c) => (
+            
+            {musculosDB.map((m) => (
               <button
-                key={c}
-                onClick={() => setSelectedClase(c)}
-                className={`flex-shrink-0 px-6 py-2 rounded-full text-[10px] font-black uppercase border transition-all ${selectedClase === c ? "bg-purple-600 border-purple-600 shadow-lg shadow-purple-500/30" : "bg-white/5 border-white/10 text-gray-400"}`}
+                key={m.id}
+                onClick={() => setSelectedClase(m.nombre)}
+                className={`flex-shrink-0 px-6 py-2 rounded-full text-[10px] font-black uppercase border transition-all ${selectedClase === m.nombre ? "bg-purple-600 border-purple-600 shadow-lg shadow-purple-500/30 text-white" : "bg-white/5 border-white/10 text-gray-400 hover:border-purple-500/50"}`}
               >
-                {c}
+                {m.nombre}
               </button>
             ))}
           </Carousel>
@@ -147,6 +160,7 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
       </header>
 
       <main className="p-4 md:p-8 max-w-[1400px] mx-auto w-full">
+        {/* ... Resto del componente main igual ... */}
         <div className="flex justify-between items-end mb-8">
             <div className="flex flex-col">
               <Text size="2xl" weight="black" variant="gradient" className="uppercase">Ejercicios</Text>
@@ -164,6 +178,7 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                 onClick={() => setSelectedExercise(e)} 
                 className="h-[420px]"
               >
+                {/* ... Contenido de la tarjeta igual que antes ... */}
                 <div className="relative h-40 bg-gray-900 overflow-hidden shrink-0">
                   {e.foto_1 ? (
                     <img 
@@ -176,31 +191,28 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                       <FaDumbbell className="text-white/5 text-5xl" />
                     </div>
                   )}
-                  
                   <div className="absolute top-4 left-4">
                     <span className="bg-purple-600 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg">
                       {e.clase}
                     </span>
                   </div>
                 </div>
+                {/* ... Resto de la card ... */}
                 <div className="p-5 md:p-6 flex flex-col flex-1">
                   <Text size="lg" weight="black" className="uppercase tracking-tight mb-1 group-hover:text-purple-400 transition-colors truncate">
                     {e.nombre}
                   </Text>
                   <p className="text-gray-500 text-[10px] leading-tight mb-4 line-clamp-2">
-                      {e.descripcion || "Sin descripción disponible para este ejercicio."}
+                      {e.descripcion || "Sin descripción disponible."}
                   </p>
-
                   <div className="flex-1 overflow-y-auto no-scrollbar bg-black/20 rounded-2xl p-4 border border-white/5 mb-4">
                     <div className="text-[9px] text-gray-500 font-bold uppercase mb-2 flex items-center gap-2">
                       <FaFire className="text-purple-500" /> Grupos Musculares
                     </div>
-                    
                     <div className="flex justify-between text-[10px] py-2 border-b border-white/5">
                       <span className="text-gray-300 uppercase">{e.clase}</span>
                       <span className="text-purple-400 font-black italic">ALTO</span>
                     </div>
-
                     {e.musculos_secundarios?.map((sec, idx) => (
                       <div key={idx} className="flex justify-between text-[10px] py-2 border-b border-white/5 last:border-0">
                         <span className="text-gray-400 uppercase">{sec.nombre}</span>
@@ -210,21 +222,13 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                       </div>
                     ))}
                   </div>
-
-                  <div className="mt-auto flex items-center justify-between">
-                      <div className="flex -space-x-2">
-                          {[e.foto_1, e.foto_2, e.foto_3].map((f, i) => f && (
-                              <img key={i} src={f} className="w-7 h-7 rounded-full border-2 border-[#161925] object-cover" alt="prev" />
-                          ))}
-                      </div>
-                  </div>
                 </div>
               </CardLayout>
             ))
           ) : (
             <div className="col-span-full flex flex-col items-center justify-center py-20 opacity-50">
               <FaSearch size={40} className="text-gray-600 mb-4" />
-              <Text weight="black" className="uppercase tracking-widest text-gray-500">No se encontraron ejercicios</Text>
+              <Text weight="black" className="uppercase tracking-widest text-gray-500">No se encontraron resultados</Text>
               <button onClick={() => {setSearchTerm(""); setSelectedClase(null)}} className="mt-4 text-purple-500 font-bold text-xs hover:underline">Limpiar filtros</button>
             </div>
           )}
