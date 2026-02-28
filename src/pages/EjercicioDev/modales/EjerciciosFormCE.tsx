@@ -177,10 +177,13 @@ const EjercicioForm: React.FC<Props> = ({ userRole, ejercicio, onClose, onSucces
 
   return (
     <div 
-    className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md lg:left-72 xl:right-80 transition-all duration-300"
-    onClick={onClose}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md lg:left-72 xl:right-80 transition-all duration-300"
+      onClick={onClose}
     >
-      <div className="bg-[#161925] border border-white/10 w-full max-w-xl rounded-[2.5rem] p-6 md:p-8 shadow-2xl overflow-y-auto max-h-[90vh] no-scrollbar relative animate-in fade-in zoom-in duration-300">
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="bg-[#161925] border border-white/10 w-full max-w-xl rounded-[2.5rem] p-6 md:p-8 shadow-2xl overflow-y-auto max-h-[90vh] no-scrollbar relative animate-in fade-in zoom-in duration-300"
+      >
         <header className="flex justify-between items-center mb-8 sticky top-0 bg-[#161925] z-20 pb-2">
           <Text size="2xl" weight="black" variant="gradient" className="uppercase leading-none italic">
             {ejercicio ? "Editar Arsenal" : "Nuevo Ejercicio"}

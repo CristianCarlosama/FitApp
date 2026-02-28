@@ -18,9 +18,8 @@ const EjercicioInfoModal = ({ exercise, onClose }: any) => {
   const getImageUrl = (url: string | null) => {
     if (!url || url === "null" || url === "undefined") return "";
     if (url.startsWith('http')) return url;
-    // Asegúrate que VITE_STORAGE_URL termina en / o agrégala aquí
     const baseUrl = import.meta.env.VITE_STORAGE_URL;
-    return `${baseUrl}/${url}`.replace(/([^:]\/)\/+/g, "$1"); // Evita doble slash //
+    return `${baseUrl}/${url}`.replace(/([^:]\/)\/+/g, "$1"); 
   };
 
   // 2. CONSTRUCCIÓN DEL ARRAY DE MEDIOS
@@ -61,7 +60,6 @@ const EjercicioInfoModal = ({ exercise, onClose }: any) => {
             <FaTimes size={12} />
           </button>
 
-          {/* NAVEGACIÓN */}
           {media.length > 1 && (
             <>
               <button 
@@ -79,7 +77,6 @@ const EjercicioInfoModal = ({ exercise, onClose }: any) => {
             </>
           )}
 
-          {/* LISTA SCRORLLABLE */}
           <div 
             ref={scrollRef} 
             onScroll={handleScroll} 
@@ -116,7 +113,6 @@ const EjercicioInfoModal = ({ exercise, onClose }: any) => {
             )}
           </div>
 
-          {/* DOTS */}
           {media.length > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-40 bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-md">
               {media.map((_, i) => (
@@ -148,7 +144,8 @@ const EjercicioInfoModal = ({ exercise, onClose }: any) => {
             </div>
             <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center">
               <span className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Descanso</span>
-              <span className="text-xs font-black uppercase text-white">{exercise.descanso || "60"}S</span>
+              {/* FUNCIÓN AÑADIDA: Prioriza el descanso del pivot de la rutina */}
+              <span className="text-xs font-black uppercase text-white">{exercise.pivot?.descanso || exercise.descanso || "60"}S</span>
             </div>
           </div>
         </div>
@@ -165,15 +162,12 @@ const RutinaDetalle = ({ rutina, onClose }: any) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:left-72 xl:right-80 transition-all duration-300">
       <div className="absolute inset-0 bg-[#0f111a]/95 backdrop-blur-xl" onClick={onClose} />
-      
       <div className="relative bg-[#161925] border border-white/10 w-full max-w-lg max-h-[85vh] rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl">
-        
         {/* HEADER */}
         <div className="relative h-32 flex-shrink-0 bg-gradient-to-b from-purple-600/20 to-transparent flex items-end px-8 pb-5">
           <button onClick={onClose} className="absolute top-6 right-6 z-20 bg-black/40 p-2.5 rounded-full text-white hover:bg-purple-600 transition-all shadow-lg border border-white/5">
             <FaTimes size={12} />
           </button>
-          
           <div className="w-full">
             <div className="flex items-center gap-2 mb-2">
               <span className={`${diffColor} text-[8px] px-2.5 py-1 rounded-md font-black uppercase tracking-widest shadow-lg text-white`}>
@@ -188,17 +182,14 @@ const RutinaDetalle = ({ rutina, onClose }: any) => {
             </Text>
           </div>
         </div>
-
         {/* LISTA */}
         <div className="flex-1 overflow-y-auto p-8 pt-2 no-scrollbar">
           <p className="text-gray-500 text-[11px] leading-relaxed border-l-2 border-purple-500/30 pl-4 py-1 italic mb-8">
             {rutina.descripcion || "Protocolo de entrenamiento diseñado para hipertrofia y fuerza máxima."}
           </p>
-
           <Text size="xs" weight="black" className="uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2 mb-4">
             <FaDumbbell className="text-purple-500" size={10} /> Lista de Ejercicios
           </Text>
-
           <div className="space-y-3">
             {rutina.ejercicios?.map((ej: any, i: number) => (
               <div 
@@ -215,9 +206,14 @@ const RutinaDetalle = ({ rutina, onClose }: any) => {
                       {ej.nombre}
                     </span>
                     <div className="flex gap-2 mt-1">
-                      <span className="text-[9px] text-gray-500 font-bold uppercase">{ej.series} Series</span>
+                      {/* FUNCIÓN AÑADIDA: Extrae series y reps del pivot de Laravel */}
+                      <span className="text-[9px] text-gray-500 font-bold uppercase">
+                        {ej.pivot?.series || ej.series || 0} Series
+                      </span>
                       <span className="text-[9px] text-purple-900/50">•</span>
-                      <span className="text-[9px] text-gray-500 font-bold uppercase">{ej.repeticiones} Reps</span>
+                      <span className="text-[9px] text-gray-500 font-bold uppercase">
+                        {ej.pivot?.repeticiones || ej.repeticiones || 0} Reps
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -226,7 +222,6 @@ const RutinaDetalle = ({ rutina, onClose }: any) => {
             ))}
           </div>
         </div>
-
         {/* FOOTER */}
         <div className="p-8 bg-black/20 border-t border-white/5">
           <button className="w-full bg-purple-600 text-white py-4 rounded-2xl font-black uppercase tracking-[0.15em] text-[10px] hover:bg-purple-500 hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] transition-all flex items-center justify-center gap-3">

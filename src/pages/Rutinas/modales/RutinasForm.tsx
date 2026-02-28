@@ -78,12 +78,18 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
     setEjercicios(nuevos);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!esMia) return;
 
-    const idsFinales = ejercicios.map((ej) => ej.id).filter(id => id);
-    if (idsFinales.length === 0) {
+    const ejerciciosParaEnviar = ejercicios.map((ej) => ({
+      id: ej.id,
+      series: Number(ej.series) || 3,
+      repeticiones: Number(ej.repeticiones) || 10,
+      descanso: Number(ej.descanso) || 60,
+    }));
+
+    if (ejerciciosParaEnviar.length === 0) {
       setNotif({ open: true, title: "Ojo ahí", message: "Debes añadir al menos un ejercicio.", type: "error" });
       return;
     }
@@ -92,8 +98,8 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
       nombre,
       descripcion,
       dificultad,
-      duracion,
-      ejercicios: idsFinales,
+      duracion: Number(duracion) || 0,
+      ejercicios: ejerciciosParaEnviar, 
       es_publica: esPublica,
       accesos,
     };
@@ -104,21 +110,18 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
         setNotif({ open: true, title: "¡Éxito!", message: "Rutina actualizada correctamente.", type: "success" });
       } else {
         await createRutina(data);
-        setNotif({ open: true, title: "¡Éxito!", message: "Nueva rutina creada. ¡A darle!", type: "success" });
+        setNotif({ open: true, title: "¡Éxito!", message: "Nueva rutina creada.", type: "success" });
       }
       setTimeout(() => {
         onSuccess();
         onClose();
-      }, 2000);
+      }, 1500);
     } catch (err) {
-      setNotif({ open: true, title: "Error", message: "Algo salió mal al guardar la rutina.", type: "error" });
+      setNotif({ open: true, title: "Error", message: "Error al guardar la rutina.", type: "error" });
     }
   };
 
   return (
-    /* CAMBIO CLAVE: lg:left-72 y xl:right-80 + transition-all
-       Esto asegura que el formulario respete el espacio de las sidebars y se centre en el "hueco" negro.
-    */
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:left-72 xl:right-80 transition-all duration-300">
       <div 
         className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300" 

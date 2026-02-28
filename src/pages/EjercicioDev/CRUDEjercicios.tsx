@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Text from "../../components/Texts";
-import { FaEdit, FaTrash, FaPlus, FaChevronLeft, FaDumbbell } from "react-icons/fa";
+import { FaEdit, FaTrash, FaChevronLeft, FaDumbbell } from "react-icons/fa";
 import { getEjercicios, deleteEjercicio, createEjercicio, updateEjercicio } from "../../services/ejercicios";
 import { getMusculos } from "../../services/musculos"; // <--- Importado
 import NotificationModal from "../../components/NotificationModal";
@@ -134,8 +134,7 @@ const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
             <button 
               onClick={() => { setSelectedEj(null); setShowForm(true); }}
               className="bg-purple-600 hover:bg-purple-700 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
-            >
-              <FaPlus size={10} />Nuevo
+            > + Nuevo
             </button>
           </div>
 

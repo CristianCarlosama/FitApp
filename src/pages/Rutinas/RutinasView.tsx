@@ -41,11 +41,18 @@ const Carousel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
-// --- INTERFACES ---
+// --- INTERFACES CORREGIDAS ---
 interface Ejercicio {
+  id: number; // Agregado ID
   nombre: string;
   series?: number;
   repeticiones?: number;
+  // Agregamos el objeto pivot para que TS no de error
+  pivot?: {
+    series: number;
+    repeticiones: number;
+    descanso: number;
+  };
 }
 
 interface Rutina {
@@ -67,7 +74,7 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
   const [filtroActivo, setFiltroActivo] = useState<string | null>(null);
   
   const [showForm, setShowForm] = useState(false);
-  const [editingRutina, setEditingRutina] = useState<any>(null);
+  const [editingRutina, setEditingRutina] = useState<Rutina | null>(null); // Tipado correctamente
   const [selectedRutinaInfo, setSelectedRutinaInfo] = useState<Rutina | null>(null);
 
   const [noti, setNoti] = useState<{
@@ -82,9 +89,14 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
 
   const fetchRutinas = async () => {
     setLoading(true);
-    const data = await getRutinas();
-    setRutinas(data);
-    setLoading(false);
+    try {
+      const data = await getRutinas();
+      setRutinas(data);
+    } catch (error) {
+      console.error("Error al traer rutinas", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { 
@@ -98,15 +110,17 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
     
     const matchesSearch = nombre.includes(busqueda) || descripcion.includes(busqueda);
 
-    // Filtrado por Categoría
     let matchesCategory = true;
     if (filtroActivo) {
       if (filtroActivo === "Mías") {
         matchesCategory = !!r.es_mia;
       } else if (filtroActivo === "Públicas") {
         matchesCategory = !!r.es_publica;
+      } else if (["Alta", "Media", "Baja"].includes(filtroActivo)) {
+        matchesCategory = r.dificultad?.toLowerCase() === filtroActivo.toLowerCase();
       } else {
-        matchesCategory = r.ejercicios.some(ej => 
+        // Filtro por nombre de ejercicio (músculo/categoría)
+        matchesCategory = r.ejercicios?.some(ej => 
           ej.nombre.toLowerCase().includes(filtroActivo.toLowerCase())
         );
       }
@@ -136,7 +150,6 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
 
   return (
     <div className="flex flex-col h-auto w-full font-sans">
-      {/* HEADER */}
       <header className="sticky top-0 z-40 bg-[#0f111a]/95 backdrop-blur-xl border-b border-white/5 p-4 md:p-6">
         <div className="max-w-[1400px] mx-auto flex flex-col gap-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -144,45 +157,43 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
               <FaChevronLeft className="text-purple-500" />
               <div className="flex flex-col items-start">
                 <Text size="2xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none">FITAPP</Text>
-                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase">Rutinas / {filtroActivo}</Text>
+                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase">Rutinas / {filtroActivo || "Explorar"}</Text>
               </div>
             </button>
             <SearchInput value={searchTerm} onChange={setSearchTerm} placeholder="Buscar por nombre o músculo..." />
           </div>
 
           <Carousel>
-            <button onClick={() => setFiltroActivo(null)} className={`flex-shrink-0 px-6 py-2 rounded-full text-[10px] font-black uppercase border transition-all ${filtroActivo === null ? "bg-purple-600 border-purple-600 shadow-lg shadow-purple-500/30" : "bg-white/5 border-white/10 text-gray-400"}`}>Todos</button>
+            <button onClick={() => setFiltroActivo(null)} className={`flex-shrink-0 px-6 py-2 rounded-full text-[10px] font-black uppercase border transition-all ${filtroActivo === null ? "bg-purple-600 border-purple-600 shadow-lg shadow-purple-500/30 text-white" : "bg-white/5 border-white/10 text-gray-400"}`}>Todos</button>
             {categoriasFiltro.map(c => (
-              <button key={c} onClick={() => setFiltroActivo(c)} className={`flex-shrink-0 px-6 py-2 rounded-full text-[10px] font-black uppercase border transition-all ${filtroActivo === c ? "bg-purple-600 border-purple-600 shadow-lg shadow-purple-500/30" : "bg-white/5 border-white/10 text-gray-400"}`}>{c}</button>
+              <button key={c} onClick={() => setFiltroActivo(c)} className={`flex-shrink-0 px-6 py-2 rounded-full text-[10px] font-black uppercase border transition-all ${filtroActivo === c ? "bg-purple-600 border-purple-600 shadow-lg shadow-purple-500/30 text-white" : "bg-white/5 border-white/10 text-gray-400"}`}>{c}</button>
             ))}
           </Carousel>
         </div>
       </header>
 
       <main className="p-4 md:p-8 max-w-[1400px] mx-auto w-full">
-        <div className="flex justify-between items-end mb-8">
-            <div className="flex flex-col">
-              <Text size="2xl" weight="black" variant="gradient" className="uppercase">Ejercicios</Text>
-              <Text size="xs" className="text-gray-500 font-bold uppercase tracking-widest">
-                {filteredRutinas.length} resultados encontrados
-              </Text>
-            </div>
-        </div>
         <div className="flex justify-between items-center mb-8">
-          <Text size="2xl" weight="black" variant="gradient">MIS RUTINAS</Text>
+          <div className="flex flex-col">
+            <Text size="2xl" weight="black" variant="gradient" className="uppercase leading-none">MIS RUTINAS</Text>
+            <Text size="xs" className="text-gray-500 font-bold uppercase tracking-widest mt-1">
+              {filteredRutinas.length} resultados encontrados
+            </Text>
+          </div>
           <button onClick={() => { setEditingRutina(null); setShowForm(true); }} className="bg-purple-600 hover:bg-purple-700 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">+ Nueva Rutina</button>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {filteredRutinas.map((rutina) => (
             <CardLayout
               key={rutina.id}
               onClick={() => setSelectedRutinaInfo(rutina)}
-              className="h-[420px]"
+              className="h-[440px] relative group" // Agregué group para la animación
             >
+              {/* Botones de acción */}
               {rutina.es_mia && (
                 <div className="absolute top-6 right-0 z-30 flex flex-col gap-2 
-                                translate-x-9 group-hover:translate-x-[-12px] 
+                                translate-x-12 group-hover:translate-x-0 
                                 transition-transform duration-300 ease-out">
                   <button 
                     onClick={(e) => { e.stopPropagation(); setEditingRutina(rutina); setShowForm(true); }}
@@ -200,7 +211,6 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
               )}
 
               <div className="p-5 md:p-6 flex flex-col h-full">
-                {/* Contenido de la tarjeta (Badges, Título, etc.) */}
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex gap-1.5 flex-wrap">
                     <span className="bg-purple-600/20 text-purple-400 px-2 py-1 rounded-full text-[8px] font-black uppercase border border-purple-500/30">
@@ -212,33 +222,34 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                   </div>
                   <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded-lg">
                     <FaStar size={10} />
-                    <span className="text-[10px] font-black">{rutina.promedio_calificacion || "0.0"}</span>
+                    <span className="text-[10px] font-black">{Number(rutina.promedio_calificacion).toFixed(1) || "0.0"}</span>
                   </div>
                 </div>
 
-                {/* Título y Descripción con padding derecho para no chocar con la pestaña */}
                 <div className="pr-4">
                   <Text size="lg" weight="black" className="uppercase tracking-tight mb-1 group-hover:text-purple-400 transition-colors truncate">
                     {rutina.nombre}
                   </Text>
-                  <p className="text-gray-500 text-[10px] leading-tight mb-4 line-clamp-2">{rutina.descripcion}</p>
+                  <p className="text-gray-500 text-[10px] leading-tight mb-4 line-clamp-2 min-h-[2.5em]">{rutina.descripcion}</p>
                 </div>
 
-                {/* Lista de Ejercicios */}
+                {/* Lista de Ejercicios CORREGIDA */}
                 <div className="flex-1 overflow-y-auto no-scrollbar bg-black/20 rounded-2xl p-4 border border-white/5 mb-4">
                   <div className="text-[9px] text-gray-500 font-bold uppercase mb-2 flex items-center justify-between">
                     <span className="flex items-center gap-2"><FaDumbbell className="text-purple-500" /> Plan</span>
-                    <span className="text-purple-400">{rutina.ejercicios.length} Ejs</span>
+                    <span className="text-purple-400 font-black">{rutina.ejercicios?.length || 0} Ejs</span>
                   </div>
-                  {rutina.ejercicios.map((ej, idx) => (
-                    <div key={idx} className="flex justify-between text-[10px] py-2 border-b border-white/5 last:border-0">
+                  {rutina.ejercicios?.map((ej, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-[10px] py-2 border-b border-white/5 last:border-0">
                       <span className="text-gray-300 truncate pr-2">{ej.nombre}</span>
-                      <span className="text-purple-400 font-black">{ej.series}x{ej.repeticiones}</span>
+                      <span className="text-purple-400 font-black whitespace-nowrap">
+                        {/* Lógica de Pivot para mostrar series y reps de la tabla intermedia */}
+                        {ej.pivot ? `${ej.pivot.series}x${ej.pivot.repeticiones}` : `${ej.series || 0}x${ej.repeticiones || 0}`}
+                      </span>
                     </div>
                   ))}
                 </div>
 
-                {/* Footer */}
                 <div className="mt-auto flex items-center gap-2 text-gray-400 font-bold">
                   <FaClock size={12} className="text-purple-500" />
                   <span className="text-[10px] uppercase tracking-wider">{rutina.duracion || "45"} MIN</span>
@@ -249,8 +260,21 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
         </div>
       </main>
 
-      {showForm && <RutinaForm rutina={editingRutina} onClose={() => { setShowForm(false); setEditingRutina(null); }} onSuccess={fetchRutinas} />}
-      {selectedRutinaInfo && <RutinaDetalle rutina={selectedRutinaInfo} onClose={() => setSelectedRutinaInfo(null)} />}
+      {showForm && (
+        <RutinaForm 
+          rutina={editingRutina} 
+          onClose={() => { setShowForm(false); setEditingRutina(null); }} 
+          onSuccess={() => { fetchRutinas(); setShowForm(false); }} 
+        />
+      )}
+      
+      {selectedRutinaInfo && (
+        <RutinaDetalle 
+          rutina={selectedRutinaInfo} 
+          onClose={() => setSelectedRutinaInfo(null)} 
+        />
+      )}
+      
       <NotificationModal {...noti} onClose={closeNoti} />
     </div>
   );
