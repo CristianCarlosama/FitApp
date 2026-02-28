@@ -123,16 +123,29 @@ const Landing: React.FC = () => {
       }
     } catch (error: any) {
         console.error("Error al guardar:", error.response?.data || error.message);
-        const mensajeError = error.response?.data?.error || 
-                            error.response?.data?.message || 
-                            "Error de conexión con el servidor";
-                            
-        setApiModal({
-          isOpen: true,
-          type: "error",
-          title: "FALLO AL GUARDAR",
-          message: mensajeError
-        });
+        let mensajeFinal = "Error de conexión con el servidor";
+
+    if (error.response?.data) {
+      const data = error.response.data;
+      
+      if (typeof data === 'string') {
+        mensajeFinal = data;
+      } else if (typeof data.message === 'string') {
+        mensajeFinal = data.message;
+      } else if (typeof data.error === 'string') {
+        mensajeFinal = data.error;
+      } else {
+        mensajeFinal = JSON.stringify(data);
+      }
+    } else if (error.message) {
+      mensajeFinal = error.message;
+    }
+    setApiModal({
+      isOpen: true,
+      type: "error",
+      title: "FALLO AL GUARDAR",
+      message: mensajeFinal
+    });
     }
   };
 
