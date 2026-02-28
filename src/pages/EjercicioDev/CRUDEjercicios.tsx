@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import Text from "../../components/Texts";
 import { FaEdit, FaTrash, FaChevronLeft, FaDumbbell } from "react-icons/fa";
 import { getEjercicios, deleteEjercicio, createEjercicio, updateEjercicio } from "../../services/ejercicios";
-import { getMusculos } from "../../services/musculos"; // <--- Importado
+import { getMusculos } from "../../services/musculos"; 
 import NotificationModal from "../../components/NotificationModal";
 import type { NotificationType } from "../../components/NotificationModal";
 import EjercicioForm from "../EjercicioDev/modales/EjerciciosFormCE";
 
-// --- COMPONENTE CAROUSEL (Igual que en EjerciciosView para consistencia) ---
+// --- COMPONENTE CAROUSEL  ---
 const Carousel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const scroll = (direction: "left" | "right") => {

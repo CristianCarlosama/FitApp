@@ -13,6 +13,14 @@ const SelectorEjercicios: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
   const [ejercicios, setEjercicios] = useState<any[]>([]);
   const [filtro, setFiltro] = useState("");
 
+  // --- FUNCIÓN PARA CONSTRUIR LA URL (Igual que en tu otro modal) ---
+  const getImageUrl = (url: string | null) => {
+    if (!url || url === "null" || url === "undefined") return "https://via.placeholder.com/600x400?text=Sin+Imagen";
+    if (url.startsWith('http')) return url;
+    const baseUrl = import.meta.env.VITE_STORAGE_URL;
+    return `${baseUrl}/${url}`.replace(/([^:]\/)\/+/g, "$1"); 
+  };
+
   useEffect(() => {
     if (isOpen) {
       getEjercicios().then(setEjercicios);
@@ -27,8 +35,14 @@ const SelectorEjercicios: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
-      <div className="bg-[#161925] border border-white/10 w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-[2.5rem] flex flex-col shadow-2xl">
+    <div 
+      className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[150] p-4 lg:left-72 xl:right-80 transition-all duration-300"
+      onClick={onClose}
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()} 
+        className="bg-[#161925] border border-white/10 w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-[2.5rem] flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-300"
+      >
         
         {/* Header */}
         <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
@@ -50,7 +64,7 @@ const SelectorEjercicios: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
             <input 
               type="text"
               placeholder="Buscar por nombre o músculo..."
-              className="w-full bg-black/20 border border-white/10 py-3 pl-12 pr-4 rounded-xl text-sm outline-none focus:border-purple-500 transition-all"
+              className="w-full bg-black/20 border border-white/10 py-3 pl-12 pr-4 rounded-xl text-sm outline-none focus:border-purple-500 transition-all text-white"
               value={filtro}
               onChange={(e) => setFiltro(e.target.value)}
             />
@@ -58,7 +72,7 @@ const SelectorEjercicios: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
         </div>
 
         {/* Lista de Ejercicios */}
-        <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 no-scrollbar">
           {ejerciciosFiltrados.map((ej) => (
             <div
               key={ej.id}
@@ -68,23 +82,27 @@ const SelectorEjercicios: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
               }}
               className="group bg-white/5 border border-white/5 p-3 rounded-3xl cursor-pointer hover:border-purple-500/50 hover:bg-purple-500/5 transition-all duration-300"
             >
-              <div className="relative h-32 w-full mb-3 overflow-hidden rounded-2xl">
+              <div className="relative h-32 w-full mb-3 overflow-hidden rounded-2xl bg-black/40">
                 <img
-                  src={ej.foto_1 || ej.imagen_url || "https://via.placeholder.com/150"}
+                  // AQUÍ USAMOS LA FUNCIÓN getImageUrl
+                  src={getImageUrl(ej.foto_1 || ej.imagen_url)}
                   alt={ej.nombre}
                   className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "https://via.placeholder.com/600x400?text=Error+Imagen";
+                  }}
                 />
                 <div className="absolute top-2 right-2">
                   <span className="text-[8px] bg-black/60 backdrop-blur-md text-purple-400 px-2 py-1 rounded-lg font-black uppercase">
-                    {ej.clase}
+                    {ej.clase || "General"}
                   </span>
                 </div>
               </div>
-              <h3 className="font-black text-sm uppercase tracking-tight mb-1 group-hover:text-purple-400 transition-colors">
+              <h3 className="font-black text-sm uppercase tracking-tight mb-1 group-hover:text-purple-400 transition-colors text-white">
                 {ej.nombre}
               </h3>
               <p className="text-[10px] text-gray-500 line-clamp-2 leading-tight">
-                {ej.descripcion}
+                {ej.descripcion || "Sin descripción disponible."}
               </p>
             </div>
           ))}

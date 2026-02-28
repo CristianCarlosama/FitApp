@@ -41,13 +41,12 @@ const Carousel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
-// --- INTERFACES CORREGIDAS ---
+// --- INTERFACES ---
 interface Ejercicio {
-  id: number; // Agregado ID
+  id: number;
   nombre: string;
   series?: number;
   repeticiones?: number;
-  // Agregamos el objeto pivot para que TS no de error
   pivot?: {
     series: number;
     repeticiones: number;
@@ -67,14 +66,20 @@ interface Rutina {
   es_publica?: boolean;
 }
 
-const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
+// CORRECCIÓN: Definición de Props para sincronizar con Landing
+interface RutinasViewProps {
+  goBack: () => void;
+  onStartWorkout: (rutina: Rutina) => void;
+}
+
+const RutinasView: React.FC<RutinasViewProps> = ({ goBack, onStartWorkout }) => {
   const [rutinas, setRutinas] = useState<Rutina[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filtroActivo, setFiltroActivo] = useState<string | null>(null);
   
   const [showForm, setShowForm] = useState(false);
-  const [editingRutina, setEditingRutina] = useState<Rutina | null>(null); // Tipado correctamente
+  const [editingRutina, setEditingRutina] = useState<Rutina | null>(null);
   const [selectedRutinaInfo, setSelectedRutinaInfo] = useState<Rutina | null>(null);
 
   const [noti, setNoti] = useState<{
@@ -119,7 +124,6 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
       } else if (["Alta", "Media", "Baja"].includes(filtroActivo)) {
         matchesCategory = r.dificultad?.toLowerCase() === filtroActivo.toLowerCase();
       } else {
-        // Filtro por nombre de ejercicio (músculo/categoría)
         matchesCategory = r.ejercicios?.some(ej => 
           ej.nombre.toLowerCase().includes(filtroActivo.toLowerCase())
         );
@@ -188,34 +192,19 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
             <CardLayout
               key={rutina.id}
               onClick={() => setSelectedRutinaInfo(rutina)}
-              className="h-[440px] relative group" // Agregué group para la animación
+              className="h-[440px] relative group"
             >
-              {/* Botones de acción */}
               {rutina.es_mia && (
-                <div className="absolute top-6 right-0 z-30 flex flex-col gap-2 
-                                translate-x-12 group-hover:translate-x-0 
-                                transition-transform duration-300 ease-out">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); setEditingRutina(rutina); setShowForm(true); }}
-                    className="p-3 bg-white text-black rounded-l-xl hover:bg-purple-600 hover:text-white transition-all shadow-2xl active:scale-90"
-                  >
-                    <FaEdit size={14} />
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handleDeleteRequest(rutina); }}
-                    className="p-3 bg-white text-red-600 rounded-l-xl hover:bg-red-600 hover:text-white transition-all shadow-2xl active:scale-90"
-                  >
-                    <FaTrash size={14} />
-                  </button>
+                <div className="absolute top-6 right-0 z-30 flex flex-col gap-2 translate-x-12 group-hover:translate-x-0 transition-transform duration-300 ease-out">
+                  <button onClick={(e) => { e.stopPropagation(); setEditingRutina(rutina); setShowForm(true); }} className="p-3 bg-white text-black rounded-l-xl hover:bg-purple-600 hover:text-white transition-all shadow-2xl active:scale-90"><FaEdit size={14} /></button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDeleteRequest(rutina); }} className="p-3 bg-white text-red-600 rounded-l-xl hover:bg-red-600 hover:text-white transition-all shadow-2xl active:scale-90"><FaTrash size={14} /></button>
                 </div>
               )}
 
               <div className="p-5 md:p-6 flex flex-col h-full">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex gap-1.5 flex-wrap">
-                    <span className="bg-purple-600/20 text-purple-400 px-2 py-1 rounded-full text-[8px] font-black uppercase border border-purple-500/30">
-                      {rutina.dificultad}
-                    </span>
+                    <span className="bg-purple-600/20 text-purple-400 px-2 py-1 rounded-full text-[8px] font-black uppercase border border-purple-500/30">{rutina.dificultad}</span>
                     <span className={`flex items-center gap-1 px-2 py-1 rounded-full text-[8px] font-black border ${rutina.es_publica ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
                       {rutina.es_publica ? <FaGlobeAmericas size={10} /> : <FaLock size={10} />}
                     </span>
@@ -227,13 +216,10 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                 </div>
 
                 <div className="pr-4">
-                  <Text size="lg" weight="black" className="uppercase tracking-tight mb-1 group-hover:text-purple-400 transition-colors truncate">
-                    {rutina.nombre}
-                  </Text>
+                  <Text size="lg" weight="black" className="uppercase tracking-tight mb-1 group-hover:text-purple-400 transition-colors truncate">{rutina.nombre}</Text>
                   <p className="text-gray-500 text-[10px] leading-tight mb-4 line-clamp-2 min-h-[2.5em]">{rutina.descripcion}</p>
                 </div>
 
-                {/* Lista de Ejercicios CORREGIDA */}
                 <div className="flex-1 overflow-y-auto no-scrollbar bg-black/20 rounded-2xl p-4 border border-white/5 mb-4">
                   <div className="text-[9px] text-gray-500 font-bold uppercase mb-2 flex items-center justify-between">
                     <span className="flex items-center gap-2"><FaDumbbell className="text-purple-500" /> Plan</span>
@@ -243,7 +229,6 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                     <div key={idx} className="flex justify-between items-center text-[10px] py-2 border-b border-white/5 last:border-0">
                       <span className="text-gray-300 truncate pr-2">{ej.nombre}</span>
                       <span className="text-purple-400 font-black whitespace-nowrap">
-                        {/* Lógica de Pivot para mostrar series y reps de la tabla intermedia */}
                         {ej.pivot ? `${ej.pivot.series}x${ej.pivot.repeticiones}` : `${ej.series || 0}x${ej.repeticiones || 0}`}
                       </span>
                     </div>
@@ -272,6 +257,7 @@ const RutinasView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
         <RutinaDetalle 
           rutina={selectedRutinaInfo} 
           onClose={() => setSelectedRutinaInfo(null)} 
+          onStart={onStartWorkout} // <-- CONEXIÓN CON LANDING
         />
       )}
       

@@ -40,17 +40,15 @@ const EjercicioDetalleModal: React.FC<Props> = ({ exercise, onClose }) => {
   };
 
   return (
-    /* CAMBIO CLAVE: lg:left-72 y xl:right-80 
-       Esto hace que el modal ignore el espacio de las sidebars y se centre en el área visible.
-    */
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:left-72 xl:right-80 transition-all duration-300">
       <div 
         className="absolute inset-0 bg-[#0f111a]/95 backdrop-blur-xl animate-in fade-in duration-300" 
         onClick={onClose} 
       />
-      
-      <div className="relative bg-[#161925] border border-white/10 w-full max-w-lg max-h-[90vh] rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-        
+      <div 
+        className="relative bg-[#161925] border border-white/10 w-full max-w-lg max-h-[90vh] rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom-4 duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* SECCIÓN SUPERIOR: CARRUSEL / MEDIA */}
         <div className="relative h-64 md:h-80 w-full bg-black shrink-0 group">
           <button 

@@ -27,44 +27,49 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      
-      {/* Card */}
-      <div className={`relative bg-[#161925] border ${config[type].color} w-full max-w-sm rounded-[2rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200 text-center`}>
-        
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 lg:left-72 xl:right-80 transition-all duration-300">
+      <div 
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-pointer" 
+        onClick={onClose} 
+      />
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className={`relative bg-[#161925] border ${config[type].color} w-full max-w-sm rounded-[2rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200 text-center z-10`}
+      >
         <div className="flex justify-center mb-4">
           {config[type].icon}
         </div>
-
-        <Text size="xl" weight="black" className="uppercase mb-2 tracking-tight">
+        <Text size="xl" weight="black" className="uppercase mb-2 tracking-tight text-white">
           {title}
         </Text>
-
         <p className="text-gray-400 text-sm mb-8 leading-relaxed">
           {message}
         </p>
-
         <div className="flex flex-col gap-3">
           {onConfirm ? (
             <>
               <button 
-                onClick={onConfirm}
-                className="w-full bg-white text-black py-3 rounded-xl font-black uppercase text-xs hover:bg-red-500 hover:text-white transition-all active:scale-95"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onConfirm();
+                }}
+                className="w-full bg-red-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-red-500/20"
               >
-                Confirmar
+                CONFIRMAR
               </button>
-              <button onClick={onClose} className="text-gray-500 text-[10px] font-black uppercase hover:text-white transition-colors">
-                Cancelar
+              <button 
+                onClick={onClose} 
+                className="text-gray-500 text-[10px] font-black uppercase hover:text-white transition-colors py-2"
+              >
+                CANCELAR
               </button>
             </>
           ) : (
             <button 
               onClick={onClose}
-              className="w-full bg-purple-600 text-white py-3 rounded-xl font-black uppercase text-xs hover:bg-purple-700 transition-all active:scale-95"
+              className="w-full bg-purple-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-purple-700 transition-all active:scale-95 shadow-lg shadow-purple-500/20"
             >
-              Entendido
+              ENTENDIDO
             </button>
           )}
         </div>
