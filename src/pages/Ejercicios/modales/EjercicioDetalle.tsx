@@ -10,7 +10,7 @@ interface Props {
 
 const EjercicioDetalleModal: React.FC<Props> = ({ exercise, onClose }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setSearchIndex] = useState(0);
 
   const getImageUrl = (url: string | null) => {
     if (!url) return "";
@@ -35,17 +35,22 @@ const EjercicioDetalleModal: React.FC<Props> = ({ exercise, onClose }) => {
   const handleScroll = () => {
     if (scrollRef.current) {
       const index = Math.round(scrollRef.current.scrollLeft / scrollRef.current.clientWidth);
-      setActiveIndex(index);
+      setSearchIndex(index);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    /* CAMBIO CLAVE: lg:left-72 y xl:right-80 
+       Esto hace que el modal ignore el espacio de las sidebars y se centre en el área visible.
+    */
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:left-72 xl:right-80 transition-all duration-300">
       <div 
         className="absolute inset-0 bg-[#0f111a]/95 backdrop-blur-xl animate-in fade-in duration-300" 
         onClick={onClose} 
       />
+      
       <div className="relative bg-[#161925] border border-white/10 w-full max-w-lg max-h-[90vh] rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+        
         {/* SECCIÓN SUPERIOR: CARRUSEL / MEDIA */}
         <div className="relative h-64 md:h-80 w-full bg-black shrink-0 group">
           <button 
@@ -55,7 +60,6 @@ const EjercicioDetalleModal: React.FC<Props> = ({ exercise, onClose }) => {
             <FaTimes size={14} />
           </button>
 
-          {/* Flechas Laterales */}
           {media.length > 1 && (
             <>
               <button 
@@ -73,7 +77,6 @@ const EjercicioDetalleModal: React.FC<Props> = ({ exercise, onClose }) => {
             </>
           )}
 
-          {/* Contenedor con Scroll */}
           <div 
             ref={scrollRef}
             onScroll={handleScroll}
@@ -97,7 +100,6 @@ const EjercicioDetalleModal: React.FC<Props> = ({ exercise, onClose }) => {
             ))}
           </div>
 
-          {/* Indicadores de Puntos */}
           {media.length > 1 && (
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2.5 z-30 bg-black/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
               {media.map((_, i) => (
@@ -114,7 +116,7 @@ const EjercicioDetalleModal: React.FC<Props> = ({ exercise, onClose }) => {
           )}
         </div>
 
-        {/* CONTENIDO DEL EJERCICIO (DESCRIPCIÓN Y MÚSCULOS) */}
+        {/* CONTENIDO DEL EJERCICIO */}
         <div className="flex-1 overflow-y-auto p-8 pt-6 no-scrollbar">
           <div className="mb-6">
             <span className="bg-purple-600 text-[8px] px-3 py-1 rounded-md font-black uppercase tracking-widest shadow-lg inline-block">
@@ -131,7 +133,6 @@ const EjercicioDetalleModal: React.FC<Props> = ({ exercise, onClose }) => {
             </Text>
           </div>
 
-          {/* Arsenal Muscular */}
           <div className="space-y-4 mb-4">
             <Text size="xs" weight="black" className="uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
               <FaFire className="text-purple-500" size={10} /> Arsenal Muscular

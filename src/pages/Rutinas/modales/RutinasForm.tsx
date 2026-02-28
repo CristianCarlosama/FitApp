@@ -55,7 +55,9 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
   useEffect(() => {
     const fetchFriends = async () => {
       try {
-        const res = await fetch("/api/friends");
+        const API = import.meta.env.VITE_API_URL;
+        const res = await fetch(`${API}/friends`);
+        if (!res.ok) throw new Error("Error en la petición");
         const data = await res.json();
         setFriends(data);
       } catch (err) {
@@ -114,17 +116,24 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-[#161925] border border-white/10 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl overflow-y-auto max-h-[90vh] no-scrollbar">
+    /* CAMBIO CLAVE: lg:left-72 y xl:right-80 + transition-all
+       Esto asegura que el formulario respete el espacio de las sidebars y se centre en el "hueco" negro.
+    */
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:left-72 xl:right-80 transition-all duration-300">
+      <div 
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300" 
+        onClick={onClose} 
+      />
+      
+      <div className="relative bg-[#161925] border border-white/10 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl overflow-y-auto max-h-[90vh] no-scrollbar animate-in zoom-in-95 duration-200">
         
-        <Text size="2xl" weight="black" variant="gradient" className="uppercase text-center mb-8">
+        <Text size="2xl" weight="black" variant="gradient" className="uppercase text-center mb-8 italic">
           {rutina ? (esMia ? "Editar Rutina" : "Detalles de Rutina") : "Nueva Rutina"}
         </Text>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <fieldset disabled={!esMia} className="space-y-5 contents">
             
-            {/* NOMBRE */}
             <div className="flex flex-col gap-2">
               <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Nombre de la Rutina</span>
               <input
@@ -136,7 +145,6 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
               />
             </div>
 
-            {/* DIFICULTAD */}
             <div className="flex flex-col gap-2">
               <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Dificultad</span>
               <select
@@ -152,7 +160,6 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
               </select>
             </div>
 
-            {/* DURACIÓN */}
             <div className="flex flex-col gap-2">
               <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Duración aprox (min)</span>
               <input
@@ -164,7 +171,6 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
               />
             </div>
 
-            {/* DESCRIPCIÓN */}
             <div className="flex flex-col gap-2">
               <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Descripción</span>
               <textarea
@@ -175,7 +181,6 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
               />
             </div>
 
-            {/* EJERCICIOS */}
             <div className="pt-4 border-t border-white/5">
               <div className="flex justify-between items-center mb-4">
                 <Text size="sm" weight="black" className="uppercase text-gray-400">Ejercicios</Text>
@@ -183,7 +188,7 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
                   <button
                     type="button"
                     onClick={() => setOpenSelector(true)}
-                    className="bg-purple-600 text-white p-2 rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/20"
+                    className="bg-purple-600 text-white p-2 rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/20 active:scale-90"
                   >
                     <FaPlus size={12} />
                   </button>
@@ -240,7 +245,6 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
             </div>
           </fieldset>
 
-          {/* PRIVACIDAD */}
           {esMia && (
             <div className="pt-4 border-t border-white/10 space-y-4">
               <div 
@@ -296,7 +300,6 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
             </div>
           )}
 
-          {/* ACCIONES */}
           <div className="flex flex-col gap-3 mt-8">
             {esMia ? (
               <button

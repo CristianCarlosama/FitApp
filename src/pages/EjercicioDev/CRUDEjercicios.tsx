@@ -133,7 +133,7 @@ const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
 
             <button 
               onClick={() => { setSelectedEj(null); setShowForm(true); }}
-              className="bg-white text-black hover:bg-purple-600 hover:text-white px-6 py-3 rounded-2xl flex items-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-white/5"
+              className="bg-purple-600 hover:bg-purple-700 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
             >
               <FaPlus size={10} />Nuevo
             </button>

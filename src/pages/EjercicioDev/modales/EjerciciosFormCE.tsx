@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import Text from "../../../components/Texts";
-// Nota: Dejamos de usar el Select original para usar el nuevo interno
 import { FaPlus, FaTrash, FaImage, FaVideo, FaSearch, FaChevronDown } from "react-icons/fa";
 import { getMusculos } from "../../../services/musculos";
 
@@ -16,7 +15,6 @@ const SearchableSelect: React.FC<{
   const [searchTerm, setSearchTerm] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Cerrar al hacer click afuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -178,10 +176,12 @@ const EjercicioForm: React.FC<Props> = ({ userRole, ejercicio, onClose, onSucces
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-      <div className="bg-[#161925] border border-white/10 w-full max-w-xl rounded-[2.5rem] p-8 shadow-2xl overflow-y-auto max-h-[95vh] no-scrollbar relative">
-        
-        <header className="flex justify-between items-center mb-8">
+    <div 
+    className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md lg:left-72 xl:right-80 transition-all duration-300"
+    onClick={onClose}
+    >
+      <div className="bg-[#161925] border border-white/10 w-full max-w-xl rounded-[2.5rem] p-6 md:p-8 shadow-2xl overflow-y-auto max-h-[90vh] no-scrollbar relative animate-in fade-in zoom-in duration-300">
+        <header className="flex justify-between items-center mb-8 sticky top-0 bg-[#161925] z-20 pb-2">
           <Text size="2xl" weight="black" variant="gradient" className="uppercase leading-none italic">
             {ejercicio ? "Editar Arsenal" : "Nuevo Ejercicio"}
           </Text>
@@ -191,7 +191,6 @@ const EjercicioForm: React.FC<Props> = ({ userRole, ejercicio, onClose, onSucces
         </header>
 
         <div className="space-y-6">
-          {/* Nombre */}
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-gray-500 ml-2 italic">Nombre del Ejercicio</label>
             <input 
@@ -202,7 +201,6 @@ const EjercicioForm: React.FC<Props> = ({ userRole, ejercicio, onClose, onSucces
             />
           </div>
 
-          {/* Músculo Principal con buscador */}
           <SearchableSelect 
             label="Músculo Principal (Enfoque)"
             options={musculosDB.map(m => ({ id: m.id, nombre: m.nombre }))}
@@ -211,7 +209,6 @@ const EjercicioForm: React.FC<Props> = ({ userRole, ejercicio, onClose, onSucces
             placeholder="BUSCAR MÚSCULO..."
           />
 
-          {/* Músculos Secundarios */}
           <div className="space-y-3">
             <div className="flex justify-between items-center ml-2">
               <label className="text-[10px] font-black uppercase text-gray-500 italic">Músculos Secundarios</label>
@@ -219,7 +216,6 @@ const EjercicioForm: React.FC<Props> = ({ userRole, ejercicio, onClose, onSucces
                 <FaPlus size={8}/> Añadir
               </button>
             </div>
-            
             <div className="space-y-3">
               {secundarios.map((sec, index) => (
                 <div key={index} className="flex gap-2 items-start bg-white/5 p-3 rounded-[2rem] border border-white/5 relative animate-in slide-in-from-left-2 duration-300">
@@ -233,7 +229,6 @@ const EjercicioForm: React.FC<Props> = ({ userRole, ejercicio, onClose, onSucces
                       placeholder="MÚSCULO..."
                     />
                   </div>
-                  
                   <div className="w-32">
                     <SearchableSelect 
                       options={opcionesIntensidad}
@@ -241,7 +236,6 @@ const EjercicioForm: React.FC<Props> = ({ userRole, ejercicio, onClose, onSucces
                       onChange={(val) => updateSecundario(index, 'intensidad', val)}
                     />
                   </div>
-
                   <button onClick={() => removeSecundario(index)} className="mt-4 p-2 text-red-500/30 hover:text-red-500 transition-colors">
                     <FaTrash size={14}/>
                   </button>
@@ -249,8 +243,6 @@ const EjercicioForm: React.FC<Props> = ({ userRole, ejercicio, onClose, onSucces
               ))}
             </div>
           </div>
-
-          {/* CARGA DE IMÁGENES */}
           <div className="space-y-3">
             <label className="text-[10px] font-black uppercase text-gray-500 ml-2 italic">Multimedia (Fotos)</label>
             <div className="grid grid-cols-1 gap-2">
@@ -273,8 +265,6 @@ const EjercicioForm: React.FC<Props> = ({ userRole, ejercicio, onClose, onSucces
               })}
             </div>
           </div>
-
-          {/* URL Video */}
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-gray-500 ml-2 italic">Video Tutorial</label>
             <div className="relative">
@@ -287,8 +277,6 @@ const EjercicioForm: React.FC<Props> = ({ userRole, ejercicio, onClose, onSucces
               />
             </div>
           </div>
-
-          {/* Descripción */}
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-gray-500 ml-2 italic">Instrucciones</label>
             <textarea 
@@ -299,7 +287,6 @@ const EjercicioForm: React.FC<Props> = ({ userRole, ejercicio, onClose, onSucces
             />
           </div>
         </div>
-
         <footer className="flex flex-col gap-3 mt-10">
           <button 
             onClick={handleSubmit}

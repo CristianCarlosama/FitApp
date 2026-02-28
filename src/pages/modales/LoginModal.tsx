@@ -3,7 +3,7 @@ import { login } from '../../services/auth';
 import Button from '../../components/Buttons';
 import Text from '../../components/Texts';
 import Input from '../../components/Inputs';
-import Modal from '../../components/Modal';
+import Modal from '../../components/Modalitpwiwiiw';
 import NotificationModal from '../../components/NotificationModal'; 
 import { FaLock } from 'react-icons/fa';
 
