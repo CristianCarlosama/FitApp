@@ -1,57 +1,28 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import Text from "../../components/Texts";
+import Button from "../../components/Buttons";
+import Carousel from "../../components/Carousel";
 import SearchInput from "../../components/SearchInput";
+import CardLayout from "../../components/CardLayout";
+import NotificationModal from "../../components/NotificationModal";
 import RutinaForm from "./modales/RutinasForm";
 import RutinaDetalle from "./modales/RutinaInfo"; 
-import NotificationModal from "../../components/NotificationModal";
-import type { NotificationType } from "../../components/NotificationModal";
-import CardLayout from "../../components/CardLayout";
+
 import { getRutinas, deleteRutina } from "../../services/rutinas";
+import type { NotificationType } from "../../components/NotificationModal";
 import { 
-  FaChevronLeft, FaChevronRight, FaStar, FaClock, 
+  FaChevronLeft, FaStar, FaClock, 
   FaDumbbell, FaGlobeAmericas, FaLock, FaEdit, FaTrash 
 } from "react-icons/fa";
 
-// --- CATEGORÍAS ---
 const categoriasFiltro = ["Mías", "Públicas", "Pecho", "Alta", "Media", "Baja"];
 
-// --- CAROUSEL REUTILIZABLE ---
-const Carousel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const { scrollLeft, clientWidth } = scrollRef.current;
-      const scrollTo = direction === "left" ? scrollLeft - clientWidth / 2 : scrollLeft + clientWidth / 2;
-      scrollRef.current.scrollTo({ left: scrollTo, behavior: "smooth" });
-    }
-  };
-
-  return (
-    <div className="relative w-full px-10">
-      <button onClick={() => scroll("left")} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/10 backdrop-blur-md p-2.5 rounded-full border border-white/10 hover:bg-purple-600 transition-all shadow-lg">
-        <FaChevronLeft size={14} />
-      </button>
-      <div ref={scrollRef} className="flex overflow-x-auto gap-3 pb-2 no-scrollbar scroll-smooth">
-        {children}
-      </div>
-      <button onClick={() => scroll("right")} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/10 backdrop-blur-md p-2.5 rounded-full border border-white/10 hover:bg-purple-600 transition-all shadow-lg">
-        <FaChevronRight size={14} />
-      </button>
-    </div>
-  );
-};
-
-// --- INTERFACES ---
 interface Ejercicio {
   id: number;
   nombre: string;
   series?: number;
   repeticiones?: number;
-  pivot?: {
-    series: number;
-    repeticiones: number;
-    descanso: number;
-  };
+  pivot?: { series: number; repeticiones: number; descanso: number; };
 }
 
 interface Rutina {
@@ -66,7 +37,6 @@ interface Rutina {
   es_publica?: boolean;
 }
 
-// CORRECCIÓN: Definición de Props para sincronizar con Landing
 interface RutinasViewProps {
   goBack: () => void;
   onStartWorkout: (rutina: Rutina) => void;
@@ -104,30 +74,20 @@ const RutinasView: React.FC<RutinasViewProps> = ({ goBack, onStartWorkout }) => 
     }
   };
 
-  useEffect(() => { 
-    fetchRutinas(); 
-  }, []);
+  useEffect(() => { fetchRutinas(); }, []);
 
   const filteredRutinas = rutinas.filter((r) => {
     const nombre = r.nombre?.toLowerCase() || "";
     const descripcion = r.descripcion?.toLowerCase() || "";
     const busqueda = searchTerm.toLowerCase();
-    
     const matchesSearch = nombre.includes(busqueda) || descripcion.includes(busqueda);
 
     let matchesCategory = true;
     if (filtroActivo) {
-      if (filtroActivo === "Mías") {
-        matchesCategory = !!r.es_mia;
-      } else if (filtroActivo === "Públicas") {
-        matchesCategory = !!r.es_publica;
-      } else if (["Alta", "Media", "Baja"].includes(filtroActivo)) {
-        matchesCategory = r.dificultad?.toLowerCase() === filtroActivo.toLowerCase();
-      } else {
-        matchesCategory = r.ejercicios?.some(ej => 
-          ej.nombre.toLowerCase().includes(filtroActivo.toLowerCase())
-        );
-      }
+      if (filtroActivo === "Mías") matchesCategory = !!r.es_mia;
+      else if (filtroActivo === "Públicas") matchesCategory = !!r.es_publica;
+      else if (["Alta", "Media", "Baja"].includes(filtroActivo)) matchesCategory = r.dificultad?.toLowerCase() === filtroActivo.toLowerCase();
+      else matchesCategory = r.ejercicios?.some(ej => ej.nombre.toLowerCase().includes(filtroActivo.toLowerCase()));
     }
     return matchesSearch && matchesCategory;
   });
@@ -147,8 +107,8 @@ const RutinasView: React.FC<RutinasViewProps> = ({ goBack, onStartWorkout }) => 
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#0f111a] flex items-center justify-center text-white font-black uppercase tracking-widest">
-      Cargando Ares...
+    <div className="min-h-screen bg-[#0f111a] flex items-center justify-center">
+      <Text size="xl" weight="black" className="uppercase animate-pulse">Cargando Ares...</Text>
     </div>
   );
 
@@ -160,84 +120,113 @@ const RutinasView: React.FC<RutinasViewProps> = ({ goBack, onStartWorkout }) => 
             <button onClick={goBack} className="group flex items-center gap-3 active:scale-95 transition-all w-fit">
               <FaChevronLeft className="text-purple-500" />
               <div className="flex flex-col items-start">
-                <Text size="2xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none">FITAPP</Text>
-                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase">Rutinas / {filtroActivo || "Explorar"}</Text>
+                <Text size="2xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none italic">ARES</Text>
+                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase italic">Rutinas / {filtroActivo || "Explorar"}</Text>
               </div>
             </button>
             <SearchInput value={searchTerm} onChange={setSearchTerm} placeholder="Buscar por nombre o músculo..." />
           </div>
 
-          <Carousel>
-            <button onClick={() => setFiltroActivo(null)} className={`flex-shrink-0 px-6 py-2 rounded-full text-[10px] font-black uppercase border transition-all ${filtroActivo === null ? "bg-purple-600 border-purple-600 shadow-lg shadow-purple-500/30 text-white" : "bg-white/5 border-white/10 text-gray-400"}`}>Todos</button>
+          <Carousel className="w-full">
+            <Button 
+              variant={filtroActivo === null ? "primary" : "glass"} 
+              size="sm" 
+              onClick={() => setFiltroActivo(null)}
+              className="flex-shrink-0 !rounded-full !px-8"
+            >
+              TODOS
+            </Button>
             {categoriasFiltro.map(c => (
-              <button key={c} onClick={() => setFiltroActivo(c)} className={`flex-shrink-0 px-6 py-2 rounded-full text-[10px] font-black uppercase border transition-all ${filtroActivo === c ? "bg-purple-600 border-purple-600 shadow-lg shadow-purple-500/30 text-white" : "bg-white/5 border-white/10 text-gray-400"}`}>{c}</button>
+              <Button 
+                key={c}
+                variant={filtroActivo === c ? "primary" : "glass"} 
+                size="sm" 
+                onClick={() => setFiltroActivo(c)}
+                className="flex-shrink-0 !rounded-full !px-8"
+              >
+                {c}
+              </Button>
             ))}
           </Carousel>
         </div>
       </header>
 
       <main className="p-4 md:p-8 max-w-[1400px] mx-auto w-full">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-end mb-8">
           <div className="flex flex-col">
-            <Text size="2xl" weight="black" variant="gradient" className="uppercase leading-none">MIS RUTINAS</Text>
-            <Text size="xs" className="text-gray-500 font-bold uppercase tracking-widest mt-1">
-              {filteredRutinas.length} resultados encontrados
+            <Text size="3xl" weight="black" variant="gradient" className="uppercase leading-none italic">EXPLORAR</Text>
+            <Text size="xs" className="text-gray-500 font-bold uppercase tracking-widest mt-2">
+              {filteredRutinas.length} resultados disponibles
             </Text>
           </div>
-          <button onClick={() => { setEditingRutina(null); setShowForm(true); }} className="bg-purple-600 hover:bg-purple-700 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">+ Nueva Rutina</button>
+          <Button 
+            variant="primary" 
+            size="sm" 
+            onClick={() => { setEditingRutina(null); setShowForm(true); }}
+            className="flex items-center gap-2"
+          >
+            <FaDumbbell /> NUEVA RUTINA
+          </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRutinas.map((rutina) => (
             <CardLayout
               key={rutina.id}
               onClick={() => setSelectedRutinaInfo(rutina)}
-              className="h-[440px] relative group"
+              className="h-[460px] relative group border border-white/5 hover:border-purple-500/30 transition-all duration-500"
             >
               {rutina.es_mia && (
-                <div className="absolute top-6 right-0 z-30 flex flex-col gap-2 translate-x-12 group-hover:translate-x-0 transition-transform duration-300 ease-out">
-                  <button onClick={(e) => { e.stopPropagation(); setEditingRutina(rutina); setShowForm(true); }} className="p-3 bg-white text-black rounded-l-xl hover:bg-purple-600 hover:text-white transition-all shadow-2xl active:scale-90"><FaEdit size={14} /></button>
-                  <button onClick={(e) => { e.stopPropagation(); handleDeleteRequest(rutina); }} className="p-3 bg-white text-red-600 rounded-l-xl hover:bg-red-600 hover:text-white transition-all shadow-2xl active:scale-90"><FaTrash size={14} /></button>
+                <div className="absolute top-6 right-0 z-30 flex flex-col gap-2 translate-x-12 group-hover:translate-x-0 transition-transform duration-300">
+                  <button onClick={(e) => { e.stopPropagation(); setEditingRutina(rutina); setShowForm(true); }} className="p-3 bg-white text-black rounded-l-xl hover:bg-purple-600 hover:text-white transition-all shadow-xl"><FaEdit size={14} /></button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDeleteRequest(rutina); }} className="p-3 bg-white text-red-600 rounded-l-xl hover:bg-red-600 hover:text-white transition-all shadow-xl"><FaTrash size={14} /></button>
                 </div>
               )}
 
-              <div className="p-5 md:p-6 flex flex-col h-full">
+              <div className="p-6 flex flex-col h-full">
                 <div className="flex justify-between items-start mb-4">
-                  <div className="flex gap-1.5 flex-wrap">
-                    <span className="bg-purple-600/20 text-purple-400 px-2 py-1 rounded-full text-[8px] font-black uppercase border border-purple-500/30">{rutina.dificultad}</span>
-                    <span className={`flex items-center gap-1 px-2 py-1 rounded-full text-[8px] font-black border ${rutina.es_publica ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
+                  <div className="flex gap-2">
+                    <span className="bg-purple-600/10 text-purple-400 px-3 py-1 rounded-lg text-[9px] font-black uppercase border border-purple-500/20">{rutina.dificultad}</span>
+                    <span className={`p-1.5 rounded-lg border ${rutina.es_publica ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-orange-500/10 text-orange-400 border-orange-500/20"}`}>
                       {rutina.es_publica ? <FaGlobeAmericas size={10} /> : <FaLock size={10} />}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded-lg">
+                  <div className="flex items-center gap-1.5 bg-yellow-500/10 text-yellow-500 px-2 py-1 rounded-lg border border-yellow-500/20">
                     <FaStar size={10} />
-                    <span className="text-[10px] font-black">{Number(rutina.promedio_calificacion).toFixed(1) || "0.0"}</span>
+                    <Text size="xs" weight="black">{Number(rutina.promedio_calificacion).toFixed(1) || "0.0"}</Text>
                   </div>
                 </div>
 
-                <div className="pr-4">
-                  <Text size="lg" weight="black" className="uppercase tracking-tight mb-1 group-hover:text-purple-400 transition-colors truncate">{rutina.nombre}</Text>
-                  <p className="text-gray-500 text-[10px] leading-tight mb-4 line-clamp-2 min-h-[2.5em]">{rutina.descripcion}</p>
+                <div className="mb-4">
+                  <Text size="xl" weight="black" className="uppercase tracking-tight group-hover:text-purple-400 transition-colors truncate italic">{rutina.nombre}</Text>
+                  <Text size="xs" className="text-gray-500 line-clamp-2 mt-1 leading-relaxed">{rutina.descripcion}</Text>
                 </div>
 
-                <div className="flex-1 overflow-y-auto no-scrollbar bg-black/20 rounded-2xl p-4 border border-white/5 mb-4">
-                  <div className="text-[9px] text-gray-500 font-bold uppercase mb-2 flex items-center justify-between">
-                    <span className="flex items-center gap-2"><FaDumbbell className="text-purple-500" /> Plan</span>
-                    <span className="text-purple-400 font-black">{rutina.ejercicios?.length || 0} Ejs</span>
+                <div className="flex-1 overflow-y-auto no-scrollbar bg-black/40 rounded-[1.5rem] p-4 border border-white/5 mb-6">
+                  <div className="flex justify-between items-center mb-3 border-b border-white/10 pb-2">
+                    <Text size="xs" weight="black" className="text-gray-400 uppercase tracking-tighter flex items-center gap-2">
+                      <FaDumbbell className="text-purple-500" /> Plan de Ataque
+                    </Text>
+                    <Text size="xs" weight="black" className="text-purple-400">{rutina.ejercicios?.length || 0} EJS</Text>
                   </div>
-                  {rutina.ejercicios?.map((ej, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-[10px] py-2 border-b border-white/5 last:border-0">
-                      <span className="text-gray-300 truncate pr-2">{ej.nombre}</span>
-                      <span className="text-purple-400 font-black whitespace-nowrap">
-                        {ej.pivot ? `${ej.pivot.series}x${ej.pivot.repeticiones}` : `${ej.series || 0}x${ej.repeticiones || 0}`}
-                      </span>
-                    </div>
-                  ))}
+                  <div className="space-y-2">
+                    {rutina.ejercicios?.map((ej, idx) => (
+                      <div key={idx} className="flex justify-between items-center group/ej">
+                        <Text size="xs" className="text-gray-400 group-hover/ej:text-white transition-colors truncate pr-2 lowercase italic first-letter:uppercase">{ej.nombre}</Text>
+                        <Text size="xs" weight="black" className="text-purple-400/80 whitespace-nowrap italic">
+                          {ej.pivot ? `${ej.pivot.series}x${ej.pivot.repeticiones}` : `${ej.series || 0}x${ej.repeticiones || 0}`}
+                        </Text>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="mt-auto flex items-center gap-2 text-gray-400 font-bold">
-                  <FaClock size={12} className="text-purple-500" />
-                  <span className="text-[10px] uppercase tracking-wider">{rutina.duracion || "45"} MIN</span>
+                <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <FaClock size={12} className="text-purple-500" />
+                    <Text size="xs" weight="black" className="uppercase italic">{rutina.duracion || "45"} MIN</Text>
+                  </div>
+                  <Text size="xs" weight="black" variant="gradient" className="uppercase italic tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Ver Detalles</Text>
                 </div>
               </div>
             </CardLayout>
@@ -257,7 +246,7 @@ const RutinasView: React.FC<RutinasViewProps> = ({ goBack, onStartWorkout }) => 
         <RutinaDetalle 
           rutina={selectedRutinaInfo} 
           onClose={() => setSelectedRutinaInfo(null)} 
-          onStart={onStartWorkout} // <-- CONEXIÓN CON LANDING
+          onStart={onStartWorkout}
         />
       )}
       

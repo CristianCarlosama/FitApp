@@ -3,7 +3,7 @@ import axios from 'axios';
 import Button from '../../components/Buttons';
 import Text from '../../components/Texts';
 import Input from '../../components/Inputs';
-import Modal from '../../components/Modalitpwiwiiw';
+import Modal from '../../components/Modal';
 import NotificationModal from '../../components/NotificationModal'; 
 import { FaUserPlus } from 'react-icons/fa';
 

@@ -1,43 +1,17 @@
-import React, { useEffect, useState, useRef } from "react";
-import { getEjercicios } from "../../services/ejercicios";
-import { getMusculos } from "../../services/musculos"; // <--- Importamos el servicio
-import SearchInput from "../../components/SearchInput";
-import Text from "../../components/Texts";
-import CardLayout from "../../components/CardLayout";
+import React, { useEffect, useState } from "react";
 import { FaDumbbell, FaChevronLeft, FaFire, FaSearch } from "react-icons/fa";
+
+// --- SERVICIOS ---
+import { getEjercicios } from "../../services/ejercicios";
+import { getMusculos } from "../../services/musculos";
+
+// --- COMPONENTES REUTILIZABLES ---
+import Text from "../../components/Texts";
+import Button from "../../components/Buttons";
+import CardLayout from "../../components/CardLayout";
+import SearchInput from "../../components/SearchInput";
+import Carousel from "../../components/Carousel"; // <--- Usamos tu Carousel global
 import EjercicioDetalleModal from "./modales/EjercicioDetalle";
-
-// --- COMPONENTE CAROUSEL REUTILIZABLE (Se mantiene igual) ---
-const Carousel: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const { scrollLeft, clientWidth } = scrollRef.current;
-      const scrollTo = direction === "left" ? scrollLeft - clientWidth / 2 : scrollLeft + clientWidth / 2;
-      scrollRef.current.scrollTo({ left: scrollTo, behavior: "smooth" });
-    }
-  };
-
-  return (
-    <div className="relative w-full px-10">
-      <button 
-        onClick={() => scroll("left")}
-        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/10 backdrop-blur-md p-2.5 rounded-full flex items-center justify-center border border-white/10 hover:bg-purple-600 transition-all shadow-lg"
-      >
-        <FaChevronLeft size={14} className="text-white" />
-      </button>
-      <div ref={scrollRef} className={`flex overflow-x-auto gap-3 pb-2 no-scrollbar scroll-smooth ${className}`}>
-        {children}
-      </div>
-      <button 
-        onClick={() => scroll("right")}
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/10 backdrop-blur-md p-2.5 rounded-full flex items-center justify-center border border-white/10 hover:bg-purple-600 transition-all shadow-lg"
-      >
-        <FaChevronLeft size={14} className="text-white rotate-180" />
-      </button>
-    </div>
-  );
-};
 
 // --- INTERFACES ---
 export interface MusculoImpacto {
@@ -57,11 +31,9 @@ export interface Ejercicio {
   foto_3?: string;
 }
 
-// Borramos la constante 'clases' quemada que tenías aquí
-
 const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
   const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);
-  const [musculosDB, setMusculosDB] = useState<{id: number, nombre: string}[]>([]); // <--- Estado para los filtros
+  const [musculosDB, setMusculosDB] = useState<{id: number, nombre: string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClase, setSelectedClase] = useState<string | null>(null);
@@ -71,7 +43,6 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
     const loadData = async () => {
       setLoading(true);
       try {
-        // Ejecutamos ambas peticiones en paralelo
         const [ejerciciosData, musculosData] = await Promise.all([
           getEjercicios(),
           getMusculos()
@@ -89,10 +60,8 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
 
   const filteredEjercicios = ejercicios.filter((e) => {
     const nombre = e.nombre?.toLowerCase() || "";
-    const descripcion = e.descripcion?.toLowerCase() || "";
     const busqueda = searchTerm.toLowerCase();
-    
-    const matchesSearch = nombre.includes(busqueda) || descripcion.includes(busqueda);
+    const matchesSearch = nombre.includes(busqueda);
 
     let matchesCategory = true;
     if (selectedClase) {
@@ -107,118 +76,130 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
   });
 
   if (loading) return (
-    <div className="min-h-screen bg-[#0f111a] flex items-center justify-center text-white font-black uppercase tracking-widest">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-        Cargando Arsenal...
+    <div className="min-h-screen bg-[#0f111a] flex items-center justify-center">
+      <div className="flex flex-col items-center gap-6">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin"></div>
+          <FaDumbbell className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-purple-500 animate-pulse" size={20} />
+        </div>
+        <Text size="xs" weight="black" className="uppercase tracking-[0.3em] text-gray-400">Desbloqueando Arsenal...</Text>
       </div>
     </div>
   );
 
   return (
-    <div className="flex flex-col h-auto w-full font-sans">
-      <header className="sticky top-0 z-50 bg-[#0f111a]/95 backdrop-blur-xl border-b border-white/5 p-4 md:p-6">
-        <div className="max-w-[1400px] mx-auto flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <button onClick={goBack} className="group flex items-center gap-3 active:scale-95 transition-all w-fit">
-              <FaChevronLeft className="text-purple-500 text-xl" />
-              <div className="flex flex-col items-start">
-                <Text size="2xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none">FITAPP</Text>
+    <div className="flex flex-col min-h-screen w-full bg-[#0f111a]">
+      {/* HEADER DINÁMICO */}
+      <header className="sticky top-0 z-40 bg-[#0f111a]/80 backdrop-blur-2xl border-b border-white/5 p-4 md:p-6">
+        <div className="max-w-[1400px] mx-auto space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <button onClick={goBack} className="group flex items-center gap-4 active:scale-95 transition-all w-fit">
+              <div className="bg-white/5 p-3 rounded-2xl group-hover:bg-purple-600 transition-colors">
+                <FaChevronLeft className="text-white text-sm" />
+              </div>
+              <div className="flex flex-col">
+                <Text size="2xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none italic">ARMORY</Text>
                 <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase">
-                    Ejercicios {selectedClase ? `/ ${selectedClase}` : ""}
+                  {selectedClase ? `/ ${selectedClase}` : "Todos los Ejercicios"}
                 </Text>
               </div>
             </button>
 
-            <SearchInput 
-              value={searchTerm} 
-              onChange={setSearchTerm} 
-              placeholder="Buscar ejercicio..." 
-            />
+            <div className="w-full md:w-96">
+              <SearchInput 
+                value={searchTerm} 
+                onChange={setSearchTerm} 
+                placeholder="Buscar por nombre..." 
+              />
+            </div>
           </div>
 
-          {/* CARRUSEL DINÁMICO DESDE BDD */}
+          {/* FILTROS CON TU CAROUSEL REUTILIZABLE */}
           <Carousel>
-            <button
+            <Button
+              variant={selectedClase === null ? "primary" : "glass"}
+              size="sm"
               onClick={() => setSelectedClase(null)}
-              className={`flex-shrink-0 px-6 py-2 rounded-full text-[10px] font-black uppercase border transition-all ${selectedClase === null ? "bg-purple-600 border-purple-600 shadow-lg shadow-purple-500/30 text-white" : "bg-white/5 border-white/10 text-gray-400"}`}
+              className="flex-shrink-0 !rounded-full !px-6"
             >
-              Todos 
-            </button>
+              Todos
+            </Button>
             
             {musculosDB.map((m) => (
-              <button
+              <Button
                 key={m.id}
+                variant={selectedClase === m.nombre ? "primary" : "glass"}
+                size="sm"
                 onClick={() => setSelectedClase(m.nombre)}
-                className={`flex-shrink-0 px-6 py-2 rounded-full text-[10px] font-black uppercase border transition-all ${selectedClase === m.nombre ? "bg-purple-600 border-purple-600 shadow-lg shadow-purple-500/30 text-white" : "bg-white/5 border-white/10 text-gray-400 hover:border-purple-500/50"}`}
+                className="flex-shrink-0 !rounded-full !px-6"
               >
                 {m.nombre}
-              </button>
+              </Button>
             ))}
           </Carousel>
         </div>
       </header>
 
-      <main className="p-4 md:p-8 max-w-[1400px] mx-auto w-full">
-        {/* ... Resto del componente main igual ... */}
-        <div className="flex justify-between items-end mb-8">
+      {/* MAIN CONTENT */}
+      <main className="p-4 md:p-8 max-w-[1400px] mx-auto w-full flex-1">
+        <div className="flex justify-between items-center mb-10">
             <div className="flex flex-col">
-              <Text size="2xl" weight="black" variant="gradient" className="uppercase">Ejercicios</Text>
-              <Text size="xs" className="text-gray-500 font-bold uppercase tracking-widest">
-                {filteredEjercicios.length} resultados encontrados
+              <Text size="3xl" weight="black" className="uppercase italic tracking-tighter">Explorar</Text>
+              <Text size="xs" className="text-gray-500 font-bold uppercase tracking-[0.2em]">
+                {filteredEjercicios.length} unidades disponibles
               </Text>
             </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredEjercicios.length > 0 ? (
             filteredEjercicios.map((e) => (
               <CardLayout 
                 key={e.id} 
                 onClick={() => setSelectedExercise(e)} 
-                className="h-[420px]"
+                className="group flex flex-col h-[400px] !p-0 overflow-hidden border-white/5 hover:border-purple-500/50 transition-all duration-500"
               >
-                {/* ... Contenido de la tarjeta igual que antes ... */}
-                <div className="relative h-40 bg-gray-900 overflow-hidden shrink-0">
+                {/* Imagen con Overlay */}
+                <div className="relative h-48 bg-gray-900 overflow-hidden shrink-0">
                   {e.foto_1 ? (
                     <img 
                       src={`${import.meta.env.VITE_STORAGE_URL}/${e.foto_1}`} 
                       alt={e.nombre} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/10 to-black">
-                      <FaDumbbell className="text-white/5 text-5xl" />
+                    <div className="w-full h-full flex items-center justify-center bg-purple-900/10">
+                      <FaDumbbell className="text-purple-500/20 text-5xl rotate-45" />
                     </div>
                   )}
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-purple-600 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#161925] to-transparent opacity-60" />
+                  <div className="absolute bottom-4 left-4">
+                    <span className="bg-purple-600 text-[8px] font-black uppercase px-3 py-1 rounded-md tracking-widest shadow-xl">
                       {e.clase}
                     </span>
                   </div>
                 </div>
-                {/* ... Resto de la card ... */}
-                <div className="p-5 md:p-6 flex flex-col flex-1">
-                  <Text size="lg" weight="black" className="uppercase tracking-tight mb-1 group-hover:text-purple-400 transition-colors truncate">
-                    {e.nombre}
-                  </Text>
-                  <p className="text-gray-500 text-[10px] leading-tight mb-4 line-clamp-2">
-                      {e.descripcion || "Sin descripción disponible."}
-                  </p>
-                  <div className="flex-1 overflow-y-auto no-scrollbar bg-black/20 rounded-2xl p-4 border border-white/5 mb-4">
-                    <div className="text-[9px] text-gray-500 font-bold uppercase mb-2 flex items-center gap-2">
-                      <FaFire className="text-purple-500" /> Grupos Musculares
+
+                {/* Info de la Card */}
+                <div className="p-6 flex flex-col flex-1 justify-between bg-[#161925]">
+                  <div>
+                    <Text size="lg" weight="black" className="uppercase tracking-tight mb-2 group-hover:text-purple-400 transition-colors">
+                      {e.nombre}
+                    </Text>
+                    <Text size="xs" className="text-gray-500 line-clamp-2 italic leading-relaxed">
+                      {e.descripcion || "Optimiza tu biomecánica con este movimiento técnico."}
+                    </Text>
+                  </div>
+
+                  {/* Badges de Músculos */}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg border border-white/5">
+                      <FaFire size={8} className="text-purple-500" />
+                      <span className="text-[9px] font-black text-gray-400 uppercase">{e.clase}</span>
                     </div>
-                    <div className="flex justify-between text-[10px] py-2 border-b border-white/5">
-                      <span className="text-gray-300 uppercase">{e.clase}</span>
-                      <span className="text-purple-400 font-black italic">ALTO</span>
-                    </div>
-                    {e.musculos_secundarios?.map((sec, idx) => (
-                      <div key={idx} className="flex justify-between text-[10px] py-2 border-b border-white/5 last:border-0">
-                        <span className="text-gray-400 uppercase">{sec.nombre}</span>
-                        <span className={`font-black ${sec.intensidad === 'Medio' ? 'text-orange-400' : 'text-blue-400'}`}>
-                          {sec.intensidad.toUpperCase()}
-                        </span>
+                    {e.musculos_secundarios?.slice(0, 2).map((m, idx) => (
+                      <div key={idx} className="bg-white/5 px-2 py-1 rounded-lg border border-white/5">
+                        <span className="text-[9px] font-black text-gray-500 uppercase">{m.nombre}</span>
                       </div>
                     ))}
                   </div>
@@ -226,15 +207,20 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
               </CardLayout>
             ))
           ) : (
-            <div className="col-span-full flex flex-col items-center justify-center py-20 opacity-50">
-              <FaSearch size={40} className="text-gray-600 mb-4" />
-              <Text weight="black" className="uppercase tracking-widest text-gray-500">No se encontraron resultados</Text>
-              <button onClick={() => {setSearchTerm(""); setSelectedClase(null)}} className="mt-4 text-purple-500 font-bold text-xs hover:underline">Limpiar filtros</button>
+            <div className="col-span-full flex flex-col items-center justify-center py-32 text-center">
+              <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10">
+                <FaSearch size={24} className="text-gray-700" />
+              </div>
+              <Text weight="black" size="lg" className="uppercase tracking-widest text-gray-500 mb-2">Sin coincidencias</Text>
+              <Button variant="glass" size="sm" onClick={() => {setSearchTerm(""); setSelectedClase(null)}}>
+                Limpiar Arsenal
+              </Button>
             </div>
           )}
         </div>
       </main>
 
+      {/* MODAL DE DETALLE */}
       {selectedExercise && (
         <EjercicioDetalleModal 
           exercise={selectedExercise} 

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { createRutina, updateRutina } from "../../../services/rutinas";
 import SelectorEjercicios from "../SelectorEjercicios";
 import Text from "../../../components/Texts";
+import Button from "../../../components/Buttons";
+import Modal from "../../../components/Modal";
 import NotificationModal from "../../../components/NotificationModal"; 
 import { FaTrash, FaPlus, FaLock, FaGlobeAmericas } from "react-icons/fa";
 
@@ -78,7 +80,7 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
     setEjercicios(nuevos);
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!esMia) return;
 
@@ -107,7 +109,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     try {
       if (rutina) {
         await updateRutina(rutina.id, data);
-        setNotif({ open: true, title: "¡Éxito!", message: "Rutina actualizada correctamente.", type: "success" });
+        setNotif({ open: true, title: "¡Éxito!", message: "Rutina actualizada.", type: "success" });
       } else {
         await createRutina(data);
         setNotif({ open: true, title: "¡Éxito!", message: "Nueva rutina creada.", type: "success" });
@@ -117,20 +119,14 @@ const handleSubmit = async (e: React.FormEvent) => {
         onClose();
       }, 1500);
     } catch (err) {
-      setNotif({ open: true, title: "Error", message: "Error al guardar la rutina.", type: "error" });
+      setNotif({ open: true, title: "Error", message: "Error al guardar.", type: "error" });
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:left-72 xl:right-80 transition-all duration-300">
-      <div 
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300" 
-        onClick={onClose} 
-      />
-      
-      <div className="relative bg-[#161925] border border-white/10 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl overflow-y-auto max-h-[90vh] no-scrollbar animate-in zoom-in-95 duration-200">
-        
-        <Text size="2xl" weight="black" variant="gradient" className="uppercase text-center mb-8 italic">
+    <Modal isOpen={true} onClose={onClose}>
+      <div className="space-y-8 no-scrollbar">
+        <Text size="2xl" weight="black" variant="gradient" className="uppercase text-center italic">
           {rutina ? (esMia ? "Editar Rutina" : "Detalles de Rutina") : "Nueva Rutina"}
         </Text>
 
@@ -138,7 +134,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <fieldset disabled={!esMia} className="space-y-5 contents">
             
             <div className="flex flex-col gap-2">
-              <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Nombre de la Rutina</span>
+              <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Nombre</span>
               <input
                 className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-white disabled:opacity-50"
                 placeholder="Ej: Empuje Explosivo"
@@ -148,37 +144,36 @@ const handleSubmit = async (e: React.FormEvent) => {
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Dificultad</span>
-              <select
-                className="w-full bg-[#1e2230] border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-gray-300 disabled:opacity-50 appearance-none"
-                value={dificultad}
-                onChange={(e) => setDificultad(e.target.value)}
-                required
-              >
-                <option value="">Seleccionar...</option>
-                <option value="baja">Baja</option>
-                <option value="media">Media</option>
-                <option value="alta">Alta</option>
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Duración aprox (min)</span>
-              <input
-                type="number"
-                className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-white disabled:opacity-50"
-                placeholder="Ej: 60"
-                value={duracion}
-                onChange={(e) => setDuracion(Number(e.target.value))}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Dificultad</span>
+                <select
+                  className="w-full bg-[#1e2230] border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-gray-300 disabled:opacity-50 appearance-none"
+                  value={dificultad}
+                  onChange={(e) => setDificultad(e.target.value)}
+                  required
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="baja">Baja</option>
+                  <option value="media">Media</option>
+                  <option value="alta">Alta</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Duración (min)</span>
+                <input
+                  type="number"
+                  className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all text-white disabled:opacity-50"
+                  value={duracion}
+                  onChange={(e) => setDuracion(Number(e.target.value))}
+                />
+              </div>
             </div>
 
             <div className="flex flex-col gap-2">
               <span className="text-[10px] font-black uppercase text-gray-500 ml-1 tracking-widest">Descripción</span>
               <textarea
                 className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-purple-500 transition-all h-24 resize-none text-white disabled:opacity-50"
-                placeholder="¿De qué trata esta rutina?"
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
               />
@@ -188,13 +183,13 @@ const handleSubmit = async (e: React.FormEvent) => {
               <div className="flex justify-between items-center mb-4">
                 <Text size="sm" weight="black" className="uppercase text-gray-400">Ejercicios</Text>
                 {esMia && (
-                  <button
-                    type="button"
+                  <Button 
+                    variant="primary" 
+                    className="!p-2 !rounded-xl" 
                     onClick={() => setOpenSelector(true)}
-                    className="bg-purple-600 text-white p-2 rounded-xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/20 active:scale-90"
                   >
                     <FaPlus size={12} />
-                  </button>
+                  </Button>
                 )}
               </div>
 
@@ -233,7 +228,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                         />
                       </div>
                       <div className="flex flex-col gap-1">
-                        <span className="text-[8px] uppercase text-gray-500 ml-1 font-bold">Descanso (s)</span>
+                        <span className="text-[8px] uppercase text-gray-500 ml-1 font-bold">Descanso</span>
                         <input
                           type="number"
                           className="bg-white/5 p-2 rounded-lg text-xs text-center outline-none border border-white/5 focus:border-purple-500 text-white"
@@ -271,59 +266,47 @@ const handleSubmit = async (e: React.FormEvent) => {
               </div>
 
               {!esPublica && friends.length > 0 && (
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
-                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto pr-1 no-scrollbar">
-                    {friends.map((f) => (
-                      <label 
-                        key={f.id} 
-                        className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer group ${
-                          accesos.includes(f.id) 
-                          ? 'bg-purple-600/20 border-purple-500/50' 
-                          : 'bg-white/5 border-white/5 hover:border-white/20'
-                        }`}
-                      >
-                        <div className={`w-1.5 h-1.5 rounded-full transition-all ${accesos.includes(f.id) ? 'bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]' : 'bg-gray-600'}`} />
-                        <input
-                          type="checkbox"
-                          className="hidden"
-                          checked={accesos.includes(f.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) setAccesos([...accesos, f.id]);
-                            else setAccesos(accesos.filter((id) => id !== f.id));
-                          }}
-                        />
-                        <span className={`text-[9px] font-black uppercase tracking-tight truncate ${accesos.includes(f.id) ? 'text-white' : 'text-gray-500'}`}>
-                          {f.nombre}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
+                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto pr-1 no-scrollbar animate-in fade-in slide-in-from-top-1">
+                  {friends.map((f) => (
+                    <label 
+                      key={f.id} 
+                      className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all cursor-pointer ${
+                        accesos.includes(f.id) ? 'bg-purple-600/20 border-purple-500/50' : 'bg-white/5 border-white/5'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="hidden"
+                        checked={accesos.includes(f.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) setAccesos([...accesos, f.id]);
+                          else setAccesos(accesos.filter((id) => id !== f.id));
+                        }}
+                      />
+                      <span className={`text-[9px] font-black uppercase truncate ${accesos.includes(f.id) ? 'text-white' : 'text-gray-500'}`}>
+                        {f.nombre}
+                      </span>
+                    </label>
+                  ))}
                 </div>
               )}
             </div>
           )}
 
-          <div className="flex flex-col gap-3 mt-8">
+          <div className="flex flex-col gap-3 mt-4">
             {esMia ? (
-              <button
-                type="submit"
-                className="w-full bg-purple-600 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/20 active:scale-95 text-white"
-              >
-                {rutina ? "Actualizar Rutina" : "Guardar Rutina"}
-              </button>
+              <Button type="submit" variant="primary" size="lg" className="w-full">
+                {rutina ? "ACTUALIZAR RUTINA" : "GUARDAR RUTINA"}
+              </Button>
             ) : (
-              <div className="bg-blue-500/10 p-4 rounded-2xl text-blue-400 text-[10px] font-black uppercase text-center border border-blue-500/20 tracking-widest">
+              <div className="bg-blue-500/10 p-4 rounded-2xl text-blue-400 text-[10px] font-black uppercase text-center border border-blue-500/20">
                 Modo lectura: Esta rutina no es tuya.
               </div>
             )}
             
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-gray-500 font-bold uppercase text-[10px] hover:text-white transition-all py-2"
-            >
+            <Button variant="glass" size="sm" onClick={onClose} className="!bg-transparent text-gray-500">
               {esMia ? "Cancelar" : "Cerrar"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -341,7 +324,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         type={notif.type}
         onClose={() => setNotif({ ...notif, open: false })}
       />
-    </div>
+    </Modal>
   );
 };
 

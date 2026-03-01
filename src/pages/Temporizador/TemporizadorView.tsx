@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaArrowLeft, FaPlay, FaPause, FaUndo, FaClock } from "react-icons/fa";
+import { FaArrowLeft, FaPlay, FaPause, FaUndo, FaClock, FaBolt } from "react-icons/fa";
+import Text from "../../components/Texts";
+import Button from "../../components/Buttons";
 
 interface TemporizadorViewProps {
   goBack: () => void;
@@ -9,8 +11,9 @@ const TemporizadorView: React.FC<TemporizadorViewProps> = ({ goBack }) => {
   const [tiempoMaximo, setTiempoMaximo] = useState<number>(60000); 
   const [tiempoRestante, setTiempoRestante] = useState<number>(60000);
   const [estaCorriendo, setEstaCorriendo] = useState<boolean>(false);
-  
-  // Estados para los inputs manuales
+  const [esOvertime, setEsOvertime] = useState<boolean>(false);
+  const esOvertimeRef = useRef(false);
+
   const [h, setH] = useState<string>("00");
   const [m, setM] = useState<string>("01");
   const [s, setS] = useState<string>("00");
@@ -19,9 +22,8 @@ const TemporizadorView: React.FC<TemporizadorViewProps> = ({ goBack }) => {
 
   const radio = 135;
   const circunferencia = 2 * Math.PI * radio;
-  const progreso = (tiempoRestante / tiempoMaximo) * circunferencia;
+  const progreso = esOvertime ? 0 : (tiempoRestante / tiempoMaximo) * circunferencia;
 
-  // Actualizar el tiempo total basado en HH:MM:SS
   const actualizarDesdeInputs = (hours: string, mins: string, secs: string) => {
     const totalMs = (parseInt(hours || "0") * 3600000) + 
                     (parseInt(mins || "0") * 60000) + 
@@ -29,35 +31,35 @@ const TemporizadorView: React.FC<TemporizadorViewProps> = ({ goBack }) => {
     
     if (totalMs > 0) {
       pausarTemporizador();
+      setEsOvertime(false);
       setTiempoMaximo(totalMs);
       setTiempoRestante(totalMs);
     }
   };
 
-  const seleccionarTiempoPredefinido = (ms: number) => {
-    pausarTemporizador();
-    setTiempoMaximo(ms);
-    setTiempoRestante(ms);
-    // Sincronizar inputs
-    const totalSegundos = ms / 1000;
-    setH(Math.floor(totalSegundos / 3600).toString().padStart(2, '0'));
-    setM(Math.floor((totalSegundos % 3600) / 60).toString().padStart(2, '0'));
-    setS(Math.floor(totalSegundos % 60).toString().padStart(2, '0'));
+  const agregarTiempoExtra = (ms: number) => {
+    setTiempoRestante(prev => prev + ms);
+    if (!esOvertime) setTiempoMaximo(prev => prev + ms);
   };
 
-  const iniciarTemporizador = () => {
-    if (estaCorriendo || tiempoRestante <= 0) return;
+const iniciarTemporizador = () => {
+  if (estaCorriendo) return;
     setEstaCorriendo(true);
+
     idIntervalo.current = setInterval(() => {
       setTiempoRestante((t) => {
-        if (t <= 10) {
-          pausarTemporizador();
-          return 0;
+        if (!esOvertimeRef.current && t <= 0) {
+          setEsOvertime(true);
+          return 10;
         }
-        return t - 10;
+        return esOvertimeRef.current ? t + 10 : t - 10;
       });
     }, 10);
   };
+
+  useEffect(() => {
+    esOvertimeRef.current = esOvertime;
+  }, [esOvertime]);
 
   const pausarTemporizador = () => {
     if (idIntervalo.current) {
@@ -69,13 +71,15 @@ const TemporizadorView: React.FC<TemporizadorViewProps> = ({ goBack }) => {
 
   const reiniciarTemporizador = () => {
     pausarTemporizador();
+    setEsOvertime(false);
     setTiempoRestante(tiempoMaximo);
   };
 
   const formatearTiempoDisplay = (ms: number) => {
-    const horas = Math.floor(ms / 3600000);
-    const minutos = Math.floor((ms % 3600000) / 60000);
-    const segundos = Math.floor((ms % 60000) / 1000);
+    const totalSegundos = Math.floor(ms / 1000);
+    const horas = Math.floor(totalSegundos / 3600);
+    const minutos = Math.floor((totalSegundos % 3600) / 60);
+    const segundos = totalSegundos % 60;
     
     const hDisplay = horas > 0 ? horas.toString().padStart(2, '0') + ':' : '';
     const mDisplay = minutos.toString().padStart(2, '0') + ':';
@@ -89,100 +93,121 @@ const TemporizadorView: React.FC<TemporizadorViewProps> = ({ goBack }) => {
   }, []);
 
   return (
-    <section className="flex flex-col h-screen p-4 bg-[#0f111a] text-white overflow-hidden font-sans">
-      {/* Header */}
-      <button onClick={goBack} className="flex items-center text-blue-400 mb-4 hover:text-blue-300 transition-all z-50 w-fit">
-        <FaArrowLeft className="mr-2" /> 
-        <span className="font-black uppercase text-[10px] tracking-[0.3em]">Volver</span>
-      </button>
-
-      <div className="flex flex-col items-center justify-center flex-grow gap-6">
-        
-        {/* SELECTOR PREDEFINIDO */}
-        <div className={`flex gap-2 transition-all duration-500 ${estaCorriendo ? 'opacity-0 -translate-y-4' : 'opacity-100'}`}>
-          {[60, 300, 600].map((seg) => (
-            <button
-              key={seg}
-              onClick={() => seleccionarTiempoPredefinido(seg * 1000)}
-              className={`px-4 py-1.5 rounded-lg text-[9px] font-black border transition-all ${tiempoMaximo === seg * 1000 ? 'bg-blue-600 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.4)]' : 'bg-white/5 border-white/10 text-gray-500'}`}
-            >
-              {seg / 60}M
-            </button>
-          ))}
+    <section className="flex flex-col h-full max-h-[calc(100vh-20px)] p-6 bg-[#0f111a] text-white overflow-y-auto no-scrollbar font-sans">
+      <header className="flex items-center justify-between mb-4">
+        <button onClick={goBack} className="flex items-center gap-3 active:scale-95 transition-all">
+          <FaArrowLeft className="text-purple-500" />
+          <div className="flex flex-col">
+            <Text size="xl" weight="black" variant="gradient" className="uppercase leading-none italic">ARES TIMER</Text>
+            <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase italic">Enfoque Total</Text>
+          </div>
+        </button>
+        <div className="p-2 bg-purple-500/10 rounded-xl border border-purple-500/20">
+            <FaBolt className={estaCorriendo ? "text-yellow-400 animate-pulse" : "text-gray-600"} />
         </div>
-
+      </header>
+      <div className="flex flex-col items-center justify-between flex-grow gap-4 py-2">
         {/* INPUTS DE TIEMPO PERSONALIZADO */}
-        <div className={`flex flex-col items-center gap-2 transition-all duration-500 ${estaCorriendo ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100'}`}>
-          <div className="flex items-center bg-white/5 p-3 rounded-2xl border border-white/10 backdrop-blur-md">
-            <div className="flex flex-col items-center">
-              <input type="number" value={h} onChange={(e) => { setH(e.target.value); actualizarDesdeInputs(e.target.value, m, s); }} className="bg-transparent w-12 text-center text-xl font-black focus:text-blue-400 outline-none" placeholder="00"/>
-              <span className="text-[8px] text-gray-500 font-bold uppercase tracking-tighter">Horas</span>
-            </div>
-            <span className="text-xl font-black text-blue-500 mx-1 mb-4">:</span>
-            <div className="flex flex-col items-center">
-              <input type="number" value={m} onChange={(e) => { setM(e.target.value); actualizarDesdeInputs(h, e.target.value, s); }} className="bg-transparent w-12 text-center text-xl font-black focus:text-blue-400 outline-none" placeholder="01"/>
-              <span className="text-[8px] text-gray-500 font-bold uppercase tracking-tighter">Minutos</span>
-            </div>
-            <span className="text-xl font-black text-blue-500 mx-1 mb-4">:</span>
-            <div className="flex flex-col items-center">
-              <input type="number" value={s} onChange={(e) => { setS(e.target.value); actualizarDesdeInputs(h, m, e.target.value); }} className="bg-transparent w-12 text-center text-xl font-black focus:text-blue-400 outline-none" placeholder="00"/>
-              <span className="text-[8px] text-gray-500 font-bold uppercase tracking-tighter">Segundos</span>
-            </div>
+        <div className={`transition-all duration-500 ${estaCorriendo ? 'hidden' : 'flex flex-col items-center gap-2'}`}>
+          <div className="flex items-center bg-white/5 p-3 rounded-[2rem] border border-white/10 backdrop-blur-md scale-90 md:scale-100">
+            {[ {v: h, set: setH, label: 'H'}, {v: m, set: setM, label: 'M'}, {v: s, set: setS, label: 'S'} ].map((item, idx) => (
+              <React.Fragment key={item.label}>
+                <div className="flex flex-col items-center px-2">
+                  <input 
+                    type="number" 
+                    value={item.v} 
+                    onChange={(e) => { item.set(e.target.value); actualizarDesdeInputs(idx === 0 ? e.target.value : h, idx === 1 ? e.target.value : m, idx === 2 ? e.target.value : s); }} 
+                    className="bg-transparent w-12 text-center text-2xl font-black focus:text-purple-400 outline-none"
+                  />
+                  <Text size="xs" weight="black" className="text-gray-500 uppercase">{item.label}</Text>
+                </div>
+                {idx < 2 && <span className="text-xl font-black text-purple-500/50 mb-5">:</span>}
+              </React.Fragment>
+            ))}
           </div>
         </div>
-
         {/* CÍRCULO PRINCIPAL */}
-        <div className="relative flex items-center justify-center w-72 h-72 md:w-80 md:h-80">
-          <div className={`absolute inset-0 bg-blue-600 rounded-full blur-[80px] transition-opacity duration-1000 ${estaCorriendo ? 'opacity-25' : 'opacity-5'}`}></div>
+        <div className="relative flex items-center justify-center w-64 h-64 md:w-72 md:h-72 my-2">
+          <div className={`absolute inset-0 rounded-full blur-[80px] transition-all duration-1000 
+            ${esOvertime ? 'bg-red-600 opacity-40 animate-pulse' : estaCorriendo ? 'bg-purple-600 opacity-20' : 'bg-purple-600 opacity-5'}`}>
+          </div>
           
           <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 300 300">
-            <circle cx="150" cy="150" r={radio} fill="transparent" stroke="#161926" strokeWidth="8" />
+            <circle cx="150" cy="150" r={radio} fill="transparent" stroke="#161926" strokeWidth="12" />
             <circle
               cx="150" cy="150" r={radio}
               fill="transparent"
-              stroke="url(#blueGrad)"
-              strokeWidth="12"
+              stroke={esOvertime ? "#ef4444" : "url(#purpleGrad)"}
+              strokeWidth="16"
               strokeDasharray={circunferencia}
               strokeDashoffset={circunferencia - progreso}
               strokeLinecap="round"
-              className="transition-all duration-75 ease-linear shadow-blue-500"
+              className="transition-all duration-100 ease-linear"
             />
             <defs>
-              <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#3b82f6" />
-                <stop offset="100%" stopColor="#1d4ed8" />
+              <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#a855f7" />
+                <stop offset="100%" stopColor="#6366f1" />
               </linearGradient>
             </defs>
           </svg>
-
           <div className="relative z-10 flex flex-col items-center">
-            <span className={`text-5xl md:text-6xl font-mono font-black tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] ${tiempoRestante === 0 ? 'text-blue-400 animate-pulse' : 'text-white'}`}>
-              {formatearTiempoDisplay(tiempoRestante)}
+            {esOvertime && (
+              <Text size="xs" weight="black" className="text-red-500 uppercase tracking-[0.3em] mb-1 animate-bounce">OVERTIME</Text>
+            )}
+            <span className={`text-5xl md:text-6xl font-mono font-black tracking-tighter drop-shadow-2xl 
+              ${esOvertime ? 'text-red-500' : 'text-white'}`}>
+              {esOvertime ? `+${formatearTiempoDisplay(tiempoRestante)}` : formatearTiempoDisplay(tiempoRestante)}
             </span>
-            <div className="flex items-center gap-2 mt-3 px-3 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">
-                <FaClock size={8} className="text-blue-400" />
-                <span className="text-[9px] font-black uppercase tracking-[0.1em] text-blue-200">Set Goal</span>
+            <div className={`flex items-center gap-2 mt-2 px-3 py-1 rounded-full border transition-all
+              ${esOvertime ? 'bg-red-500/10 border-red-500/20' : 'bg-purple-500/10 border-purple-500/20'}`}>
+                <FaClock size={8} className={esOvertime ? 'text-red-400' : 'text-purple-400'} />
+                <Text size="xs" weight="black" className={`uppercase italic text-[10px] ${esOvertime ? 'text-red-200' : 'text-purple-200'}`}>
+                  {esOvertime ? 'Excedido' : 'Objetivo'}
+                </Text>
             </div>
           </div>
         </div>
 
-        {/* CONTROLES */}
-        <div className="flex items-center gap-10 mt-4">
-          <button onClick={reiniciarTemporizador} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-blue-600/20 transition-all active:scale-90">
-            <FaUndo size={16} className="text-gray-500" />
-          </button>
+        {/* BOTONES DE PÁNICO Y CONTROLES */}
+        <div className="flex flex-col items-center gap-4 w-full">
+          <div className={`flex gap-4 transition-all duration-500 ${estaCorriendo ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+            <Button variant="glass" size="sm" onClick={() => agregarTiempoExtra(15000)} className="!rounded-xl !bg-white/5 border-white/10 italic font-black text-purple-400 !px-4">
+              +15S
+            </Button>
+            <Button variant="glass" size="sm" onClick={() => agregarTiempoExtra(30000)} className="!rounded-xl !bg-white/5 border-white/10 italic font-black text-purple-400 !px-4">
+              +30S
+            </Button>
+          </div>
 
-          {!estaCorriendo ? (
-            <button onClick={iniciarTemporizador} className="w-20 h-20 rounded-3xl bg-blue-600 flex items-center justify-center text-white shadow-[0_15px_30px_rgba(37,99,235,0.4)] hover:bg-blue-500 hover:-translate-y-1 transition-all active:scale-95">
-              <FaPlay size={24} className="ml-1" />
-            </button>
-          ) : (
-            <button onClick={pausarTemporizador} className="w-20 h-20 rounded-3xl border-2 border-blue-500 flex items-center justify-center text-blue-400 bg-blue-500/5 transition-all active:scale-95 shadow-[0_0_20px_rgba(37,99,235,0.2)]">
-              <FaPause size={24} />
-            </button>
-          )}
+          <div className="flex items-center gap-6">
+            <Button 
+              variant="glass" 
+              className="!w-14 !h-14 !rounded-2xl border-white/5 bg-white/5 flex items-center justify-center hover:bg-red-500/10 group" 
+              onClick={reiniciarTemporizador}
+            >
+              <FaUndo size={16} className="text-gray-500 group-hover:text-red-400 transition-colors" />
+            </Button>
 
-          <div className="w-12 h-12" />
+            {!estaCorriendo ? (
+              <Button 
+                variant="primary" 
+                className="!w-20 !h-20 !rounded-[2rem] shadow-purple-500/40 shadow-2xl z-50" 
+                onClick={iniciarTemporizador}
+              >
+                <FaPlay size={24} className="ml-1" />
+              </Button>
+            ) : (
+              <Button 
+                variant="glass" 
+                className="!w-20 !h-20 !rounded-[2rem] border-purple-500 bg-purple-500/5 shadow-purple-500/20 shadow-xl z-50" 
+                onClick={pausarTemporizador}
+              >
+                <FaPause size={24} className="text-purple-400" />
+              </Button>
+            )}
+            <div className="w-14" /> 
+          </div>
         </div>
       </div>
     </section>

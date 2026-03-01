@@ -13,7 +13,7 @@ const SelectorEjercicios: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
   const [ejercicios, setEjercicios] = useState<any[]>([]);
   const [filtro, setFiltro] = useState("");
 
-  // --- FUNCIÓN PARA CONSTRUIR LA URL (Igual que en tu otro modal) ---
+  // --- FUNCIÓN PARA CONSTRUIR LA URL ---
   const getImageUrl = (url: string | null) => {
     if (!url || url === "null" || url === "undefined") return "https://via.placeholder.com/600x400?text=Sin+Imagen";
     if (url.startsWith('http')) return url;
@@ -84,7 +84,7 @@ const SelectorEjercicios: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
             >
               <div className="relative h-32 w-full mb-3 overflow-hidden rounded-2xl bg-black/40">
                 <img
-                  // AQUÍ USAMOS LA FUNCIÓN getImageUrl
+                  // USAMOS LA FUNCIÓN getImageUrl
                   src={getImageUrl(ej.foto_1 || ej.imagen_url)}
                   alt={ej.nombre}
                   className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
