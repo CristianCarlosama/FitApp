@@ -86,66 +86,62 @@ const Landing: React.FC = () => {
   }, []);
 
   const handleFinishWorkout = async (data: any) => {
-    try {
-      const token = localStorage.getItem('token'); 
-      if (!token) {
-          setApiModal({
-            isOpen: true,
-            type: "error",
-            title: "SESIÓN EXPIRADA",
-            message: "Pana, no hay sesión activa. Por favor, inicia sesión de nuevo."
-          });
-          return;
-      }
-
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/entrenamientos`, data, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      });
-
-      if (response.status === 201 || response.status === 200) {
-          setApiModal({
-            isOpen: true,
-            type: "success",
-            title: "¡ENTRENO GUARDADO!",
-            message: "¡La rompiste, máquina! Tu progreso ya está en la base de datos."
-          });
-
-          setTimeout(() => {
-            setActiveView("landing");
-            setActiveWorkout(null);
-          }, 1500);
-      }
-    } catch (error: any) {
-        console.error("Error al guardar:", error.response?.data || error.message);
-        let mensajeFinal = "Error de conexión con el servidor";
-
-    if (error.response?.data) {
-      const data = error.response.data;
-      
-      if (typeof data === 'string') {
-        mensajeFinal = data;
-      } else if (typeof data.message === 'string') {
-        mensajeFinal = data.message;
-      } else if (typeof data.error === 'string') {
-        mensajeFinal = data.error;
-      } else {
-        mensajeFinal = JSON.stringify(data);
-      }
-    } else if (error.message) {
-      mensajeFinal = error.message;
+  try {
+    const token = localStorage.getItem('token'); 
+    if (!token) {
+        setApiModal({
+          isOpen: true,
+          type: "error",
+          title: "SESIÓN EXPIRADA",
+          message: "Pana, no hay sesión activa. Por favor, inicia sesión de nuevo."
+        });
+        return;
     }
-    setApiModal({
-      isOpen: true,
-      type: "error",
-      title: "FALLO AL GUARDAR",
-      message: mensajeFinal
+
+    // DEBUG: Antes de enviar, mira en la consola si 'data' trae fecha_inicio y series
+    console.log("Payload enviado:", data);
+
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/entrenamientos`, data, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+        // Axios pone el Content-Type: application/json automáticamente al pasar un objeto
+      }
     });
+
+    if (response.status === 201 || response.status === 200) {
+        setApiModal({
+          isOpen: true,
+          type: "success",
+          title: "¡ENTRENO GUARDADO!",
+          message: "¡La rompiste, máquina! Tu progreso ya está en la base de datos."
+        });
+
+        setTimeout(() => {
+          setActiveView("landing");
+          setActiveWorkout(null);
+        }, 1500);
     }
-  };
+  } catch (error: any) {
+      console.error("Error detallado del servidor:", error.response?.data);
+      
+      // Extraemos el mensaje de validación si existe
+      let mensajeFinal = "Error de conexión";
+      if (error.response?.data?.errors) {
+        // Esto concatena los errores de validación de Laravel (ej: "fecha_inicio is required")
+        mensajeFinal = Object.values(error.response.data.errors).flat().join(" | ");
+      } else {
+        mensajeFinal = error.response?.data?.message || error.message;
+      }
+
+      setApiModal({
+        isOpen: true,
+        type: "error",
+        title: "FALLO AL GUARDAR",
+        message: mensajeFinal
+      });
+  }
+};
 
   const renderView = () => {
     switch (activeView) {

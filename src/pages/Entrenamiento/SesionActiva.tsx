@@ -27,7 +27,10 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
   const [descansoActivo, setDescansoActivo] = useState(false);
   const [segundosDescanso, setSegundosDescanso] = useState(0);
   const [tiempoDescansoObjetivo, setTiempoDescansoObjetivo] = useState(90);
-
+  
+  // Formato compatible con MySQL: YYYY-MM-DD HH:mm:ss
+  const [fechaInicio] = useState(new Date().toISOString().slice(0, 19).replace('T', ' '));
+  
   const [modal, setModal] = useState({
     isOpen: false,
     type: "info" as NotificationType,
@@ -36,7 +39,7 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
     onConfirm: undefined as (() => void) | undefined,
   });
 
-// --- CARGA DE DATOS ---
+  // --- CARGA DE DATOS ---
   useEffect(() => {
     if (rutina?.ejercicios) {
       const seriesIniciales: Serie[] = [];
@@ -87,7 +90,6 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
-  // --- ADVERTENCIA AL SALIR (NUEVA/RECUPERADA) ---
   const handleCloseAttempt = () => {
     setModal({
       isOpen: true,
@@ -101,7 +103,7 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
     });
   };
 
-  // --- MANEJO DE DESCANSO ---
+  // --- MANEJO DE COMPLETADO Y DESCANSO ---
   const toggleCompletarSerie = (ejercicioId: number, numSerie: number, nombreEj: string, descansoSugerido: any) => {
     const tiempoDescanso = parseInt(descansoSugerido || 60);
 
@@ -142,6 +144,38 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
     setSeries(prev => prev.filter(s => !(s.ejercicio_id === ejercicioId && s.numero_serie === numSerie)));
   };
 
+  // --- FUNCIÓN FINALIZAR (SÓLO GUARDAR MARCADAS) ---
+  const handleFinalizarEntrenamiento = () => {
+    // 1. Filtrar solo las series que tienen el CHECK marcado
+    const seriesParaGuardar = series.filter(s => s.completada);
+
+    // 2. Validar que al menos haya una serie hecha
+    if (seriesParaGuardar.length === 0) {
+      setModal({
+        isOpen: true,
+        type: "info",
+        title: "¡AVISO!",
+        message: "Pana, no has marcado ninguna serie con el CHECK. Debes marcar las series que completaste para poder guardarlas.",
+        onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
+      });
+      return;
+    }
+
+    // 3. Enviar datos al Backend
+    onFinish({
+      rutina_id: rutina.id,
+      fecha_inicio: fechaInicio,
+      fecha_fin: new Date().toISOString().slice(0, 19).replace('T', ' '),
+      notas_sesion: "",
+      series: seriesParaGuardar.map(s => ({
+        ejercicio_id: s.ejercicio_id,
+        peso: Number(s.peso),
+        reps: Number(s.reps),
+        numero_serie: s.numero_serie
+      }))
+    });
+  };
+
   return (
     <div className="w-full flex flex-col min-h-screen bg-[#0f111a]">
       <header className="p-4 bg-[#161925] border-b border-white/5 sticky top-0 z-30 shadow-2xl">
@@ -177,7 +211,7 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
         )}
       </header>
 
-      <main className="p-4 space-y-6 pb-32">
+      <main className="p-4 space-y-6 pb-40">
         {rutina.ejercicios?.map((ej: any) => (
           <section key={ej.id} className="bg-[#161925] rounded-[2rem] border border-white/5 overflow-hidden shadow-inner">
             <div className="p-4 bg-white/5 border-b border-white/5 flex justify-between items-center">
@@ -197,7 +231,7 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
               </div>
 
               {series.filter(s => s.ejercicio_id === ej.id).map((serie, idx) => (
-                <div key={`${ej.id}-${idx}`} className={`grid grid-cols-5 gap-2 items-center p-1 rounded-xl transition-all ${serie.completada ? 'bg-green-500/10' : ''}`}>
+                <div key={`${ej.id}-${idx}`} className={`grid grid-cols-5 gap-2 items-center p-1 rounded-xl transition-all ${serie.completada ? 'bg-green-500/10' : 'opacity-70'}`}>
                   <div className="bg-white/5 h-10 flex items-center justify-center rounded-xl text-xs font-black text-gray-400">
                     {serie.numero_serie}
                   </div>
@@ -210,7 +244,7 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
                   />
                   
                   <input 
-                    key={`reps-${ej.id}-${serie.numero_serie}-${serie.reps}`}
+                    key={`reps-${ej.id}-${serie.numero_serie}`}
                     type="number" 
                     defaultValue={serie.reps}
                     className="bg-[#0f111a] border border-white/5 rounded-xl h-10 text-center text-sm font-bold text-white outline-none focus:border-purple-500" 
@@ -238,12 +272,17 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
       </main>
 
       <footer className="p-4 bg-[#0f111a]/95 backdrop-blur-xl fixed bottom-0 w-full border-t border-white/5 z-40">
-        <button 
-          onClick={() => onFinish(series)} 
-          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all"
-        >
-          Finalizar Entrenamiento
-        </button>
+        <div className="max-w-md mx-auto">
+          <Text size="xs" className="text-center text-gray-500 italic block mb-3">
+             Se guardarán solo las series con el check <FaCheck className="inline text-green-500 ml-1" />
+          </Text>
+          <button 
+            onClick={handleFinalizarEntrenamiento} 
+            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-[0_0_20px_rgba(147,51,234,0.3)] active:scale-95 transition-all"
+          >
+            Finalizar Entrenamiento
+          </button>
+        </div>
       </footer>
 
       <NotificationModal 
