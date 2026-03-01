@@ -14,7 +14,7 @@ import Card from '../components/Cards';
 import NotificationModal from "../components/NotificationModal";
 import type { NotificationType } from "../components/NotificationModal";
 import { 
-  FaStopwatch, FaClock, FaDumbbell, FaTasks, FaBullseye,
+  FaStopwatch, FaClock, FaDumbbell, FaTasks, FaBullseye, FaCalendarAlt,
   FaRuler, FaCommentDots, FaMapMarkedAlt, FaBars, FaTimes,
   FaUserCircle, FaCog, FaLifeRing, FaSignOutAlt, FaImages 
 } from 'react-icons/fa';
@@ -65,13 +65,11 @@ const Landing: React.FC = () => {
     const checkAuth = () => {
       const token = localStorage.getItem("token");
       const storedUser = localStorage.getItem("user");
-
       if (token) {
         setIsAuthenticated(true);
         try {
           const payload = JSON.parse(atob(token.split(".")[1]));
           setUserRole(payload.role);
-          
           if (storedUser) {
             setUser(JSON.parse(storedUser));
           }
@@ -81,7 +79,6 @@ const Landing: React.FC = () => {
       }
       setLoading(false); 
     };
-
     checkAuth();
   }, []);
 
@@ -98,14 +95,10 @@ const Landing: React.FC = () => {
         return;
     }
 
-    // DEBUG: Antes de enviar, mira en la consola si 'data' trae fecha_inicio y series
-    console.log("Payload enviado:", data);
-
     const response = await axios.post(`${import.meta.env.VITE_API_URL}/entrenamientos`, data, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json'
-        // Axios pone el Content-Type: application/json automáticamente al pasar un objeto
       }
     });
 
@@ -116,7 +109,6 @@ const Landing: React.FC = () => {
           title: "¡ENTRENO GUARDADO!",
           message: "¡La rompiste, máquina! Tu progreso ya está en la base de datos."
         });
-
         setTimeout(() => {
           setActiveView("landing");
           setActiveWorkout(null);
@@ -124,16 +116,12 @@ const Landing: React.FC = () => {
     }
   } catch (error: any) {
       console.error("Error detallado del servidor:", error.response?.data);
-      
-      // Extraemos el mensaje de validación si existe
       let mensajeFinal = "Error de conexión";
       if (error.response?.data?.errors) {
-        // Esto concatena los errores de validación de Laravel (ej: "fecha_inicio is required")
         mensajeFinal = Object.values(error.response.data.errors).flat().join(" | ");
       } else {
         mensajeFinal = error.response?.data?.message || error.message;
       }
-
       setApiModal({
         isOpen: true,
         type: "error",
@@ -293,7 +281,8 @@ const Landing: React.FC = () => {
     { title: 'Medidas', view: 'medidas', icon: <FaRuler className="text-emerald-400" />, description: 'Medidas Corporales.' },
     { title: 'Comentarios', view: 'comentarios', icon: <FaCommentDots className="text-yellow-400" />, description: 'Motívate tú mismo.' },
     { title: 'Fotos', view: 'fotos', icon: <FaImages className="text-pink-400" />, description: 'Sigue tu progreso.' },
-    { title: 'Calendario', view: 'calendario', icon: <FaImages className="text-pink-400" />, description: 'Sigue tu progreso.' },
+    { title: 'Calendario', view: 'calendario', icon: <FaCalendarAlt className="text-gray-400" />, description: 'Sigue tu progreso.' 
+    },
   ];
 
   if (loading) {
