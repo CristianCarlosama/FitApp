@@ -104,8 +104,13 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
   };
 
   // --- MANEJO DE COMPLETADO Y DESCANSO ---
-  const toggleCompletarSerie = (ejercicioId: number, numSerie: number, nombreEj: string, descansoSugerido: any) => {
-    const tiempoDescanso = parseInt(descansoSugerido || 60);
+  const toggleCompletarSerie = (ejercicioId: number, numSerie: number, nombreEj: string, ej: any) => {
+    const tiempoDescanso = parseInt(
+      ej.descanso ||
+      ej.pivot?.descanso ||
+      ej.descanso_sugerido ||
+      60                        
+    );
 
     setSeries(prev => prev.map(s => {
       if (s.ejercicio_id === ejercicioId && s.numero_serie === numSerie) {
@@ -116,7 +121,7 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
             isOpen: true,
             type: "success",
             title: "¡Serie Completada!",
-            message: `Vas a iniciar un descanso de ${tiempoDescanso} segundos para ${nombreEj}. ¿DALE?`,
+            message: `Empezará un descanso de ${tiempoDescanso} segundos para ${nombreEj}.`,
             onConfirm: () => {
               setTiempoDescansoObjetivo(tiempoDescanso);
               setSegundosDescanso(0);
@@ -144,24 +149,21 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
     setSeries(prev => prev.filter(s => !(s.ejercicio_id === ejercicioId && s.numero_serie === numSerie)));
   };
 
-  // --- FUNCIÓN FINALIZAR (SÓLO GUARDAR MARCADAS) ---
+  // --- FUNCIÓN FINALIZAR ---
   const handleFinalizarEntrenamiento = () => {
-    // 1. Filtrar solo las series que tienen el CHECK marcado
     const seriesParaGuardar = series.filter(s => s.completada);
 
-    // 2. Validar que al menos haya una serie hecha
     if (seriesParaGuardar.length === 0) {
       setModal({
         isOpen: true,
         type: "info",
         title: "¡AVISO!",
-        message: "Pana, no has marcado ninguna serie con el CHECK. Debes marcar las series que completaste para poder guardarlas.",
+        message: "No has marcado ninguna serie con el CHECK. Debes marcar las series que completaste para poder guardarlas.",
         onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
       });
       return;
     }
 
-    // 3. Enviar datos al Backend
     onFinish({
       rutina_id: rutina.id,
       fecha_inicio: fechaInicio,
@@ -250,17 +252,15 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
                     className="bg-[#0f111a] border border-white/5 rounded-xl h-10 text-center text-sm font-bold text-white outline-none focus:border-purple-500" 
                     onChange={(e) => actualizarDato(ej.id, serie.numero_serie, 'reps', e.target.value)} 
                   />
-
                   <button 
-                    onClick={() => toggleCompletarSerie(ej.id, serie.numero_serie, ej.nombre, ej.descanso_sugerido)}
+                    onClick={() => toggleCompletarSerie(ej.id, serie.numero_serie, ej.nombre, ej)}
                     className={`h-10 rounded-xl flex items-center justify-center transition-all ${serie.completada ? 'bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]' : 'bg-white/5 text-gray-700 hover:bg-white/10'}`}
                   >
                     <FaCheck size={14} />
                   </button>
-
                   <button 
                     onClick={() => eliminarSerie(ej.id, serie.numero_serie)}
-                    className="flex justify-center text-gray-800 hover:text-red-500"
+                    className="flex justify-center text-red-800 hover:text-red-500"
                   >
                     <FaTrash size={12} />
                   </button>
