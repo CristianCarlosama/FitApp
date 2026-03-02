@@ -29,23 +29,21 @@ const CalendarioView: React.FC<CalendarioViewProps> = ({ goBack }) => {
   const monthName = currentDate.toLocaleString('es-ES', { month: 'long' });
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDayIndex = new Date(year, month, 1).getDay();
-  const startingDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+  
+  // FIX LÓGICA DE DÍAS: 
+  // getDay() es Dom=0, Lun=1... Para que empiece en Lun:
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
+  const startingDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
 
   const cargarResumenMes = useCallback(async () => {
     setDiasConActividad([]); 
 
     try {
       const response = await api.get(`/calendario/mes/${year}/${month + 1}`);
-
       const dias = Array.isArray(response.data) ? response.data.map(Number) : [];
       setDiasConActividad(dias); 
     } catch (error: any) {
-      if (error.response?.status === 401) {
-        console.error("Token expirado o inválido");
-      } else {
-        console.error("Error cargando indicadores:", error.message);
-      }
+      console.error("Error cargando indicadores:", error.message);
     }
   }, [year, month]);
 
@@ -56,12 +54,10 @@ const CalendarioView: React.FC<CalendarioViewProps> = ({ goBack }) => {
   const handleDayClick = async (dia: number) => {
     const fechaKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
     setFechaStr(`${dia} de ${monthName}, ${year}`);
-    
     setLoading(true);
 
     try {
         const response = await api.get(`/calendario/detalle/${fechaKey}`);
-        
         setSelectedData(response.data.data);
         setIsModalOpen(true);
     } catch (error) {
@@ -93,7 +89,7 @@ const CalendarioView: React.FC<CalendarioViewProps> = ({ goBack }) => {
         </div>
       </header>
 
-      <main className="p-4 md:p-8 max-w-[1000px] mx-auto w-full">
+      <main className="p-4 md:p-8 max-w-[1400px] mx-auto w-full">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div className="flex flex-col">
             <Text size="3xl" weight="black" variant="gradient" className="uppercase leading-none italic">CALENDARIO</Text>
@@ -105,70 +101,75 @@ const CalendarioView: React.FC<CalendarioViewProps> = ({ goBack }) => {
           </div>
           <div className="flex gap-2">
             <Button variant="glass" size="sm" onClick={prevMonth} className="!px-4"><FaChevronLeft size={12} /></Button>
-            <Button variant="primary" size="sm" onClick={() => setCurrentDate(new Date())} className="!text-[10px] tracking-widest">HOY</Button>
+            <Button variant="primary" size="sm" onClick={() => setCurrentDate(new Date())} className="!text-[10px] tracking-widest uppercase">HOY</Button>
             <Button variant="glass" size="sm" onClick={nextMonth} className="!px-4"><FaChevronRight size={12} /></Button>
           </div>
         </div>
 
-        <CardLayout className="p-4 md:p-8 bg-black/40 border-white/5 shadow-2xl overflow-hidden relative">
-          {loading && <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] z-10 flex items-center justify-center transition-all" />}
-          
-          <div className="grid grid-cols-7 mb-6">
-            {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
-              <div key={d} className="text-center">
-                <Text size="xs" weight="black" className="text-gray-600 uppercase tracking-tighter">{d}</Text>
-              </div>
-            ))}
-          </div>
+        {/* CONTENEDOR MÁS PEQUEÑO SOLO PARA EL CALENDARIO */}
+        <div className="max-w-[600px] mx-auto">
+          <CardLayout className="p-4 md:p-6 bg-black/40 border-white/5 shadow-2xl overflow-hidden relative rounded-3xl">
+            {loading && <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] z-10 flex items-center justify-center" />}
+            
+            <div className="grid grid-cols-7 mb-6">
+              {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
+                <div key={d} className="text-center">
+                  <Text size="xs" weight="black" className="text-gray-600 uppercase tracking-tighter">{d}</Text>
+                </div>
+              ))}
+            </div>
 
-          {/* LA KEY EN ESTE DIV ES VITAL PARA LIMPIAR LOS PUNTOS VISUALMENTE */}
-          <div key={`${year}-${month}`} className="grid grid-cols-7 gap-2 md:gap-4 animate-in fade-in duration-500">
-            {Array.from({ length: startingDay }).map((_, i) => (
-              <div key={`empty-${i}`} className="aspect-square opacity-0" />
-            ))}
+            <div key={`${year}-${month}`} className="grid grid-cols-7 gap-2 md:gap-3 animate-in fade-in duration-500">
+              {Array.from({ length: startingDay }).map((_, i) => (
+                <div key={`empty-${i}`} className="aspect-square" />
+              ))}
 
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const dia = i + 1;
-              const esHoy = new Date().toDateString() === new Date(year, month, dia).toDateString();
-              const tieneData = diasConActividad.includes(dia);
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const dia = i + 1;
+                const esHoy = new Date().toDateString() === new Date(year, month, dia).toDateString();
+                const tieneData = diasConActividad.includes(dia);
 
-              return (
-                <button
-                  key={dia}
-                  onClick={() => handleDayClick(dia)}
-                  className={`
-                    relative aspect-square rounded-xl md:rounded-2xl flex flex-col items-center justify-center 
-                    transition-all duration-300 group active:scale-90
-                    ${esHoy 
-                      ? 'bg-purple-600 shadow-[0_0_20px_rgba(168,85,247,0.4)] border-none' 
-                      : 'bg-white/[0.03] border border-white/5 hover:border-purple-500/40 hover:bg-purple-600/5'
-                    }
-                  `}
-                >
-                  <span className={`text-sm md:text-lg font-black italic ${esHoy ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
-                    {dia}
-                  </span>
-                  
-                  {tieneData && (
-                    <div className={`
-                      absolute bottom-2 w-1.5 h-1.5 rounded-full 
-                      ${esHoy ? 'bg-white' : 'bg-purple-500 shadow-[0_0_8px_#a855f7]'}
-                    `} />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </CardLayout>
+                return (
+                  <button
+                    key={dia}
+                    onClick={() => handleDayClick(dia)}
+                    className={`
+                      relative aspect-square rounded-xl flex flex-col items-center justify-center 
+                      transition-all duration-300 group active:scale-90
+                      ${esHoy 
+                        ? 'bg-purple-600 shadow-[0_0_20px_rgba(168,85,247,0.4)] border-none' 
+                        : tieneData 
+                          ? 'bg-white/[0.08] border border-white/10 hover:border-purple-500/40 hover:bg-purple-600/5' 
+                          : 'bg-white/[0.02] border border-transparent opacity-30 hover:opacity-100'
+                      }
+                    `}
+                  >
+                    <span className={`text-sm md:text-base font-black italic ${esHoy ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
+                      {dia}
+                    </span>
+                    
+                    {tieneData && (
+                      <div className={`
+                        absolute bottom-1.5 w-1.5 h-1.5 rounded-full 
+                        ${esHoy ? 'bg-white' : 'bg-purple-500 shadow-[0_0_8px_#a855f7]'}
+                      `} />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </CardLayout>
 
-        <div className="mt-8 flex items-center justify-center gap-6 opacity-50">
-          <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-purple-500 rounded-full" />
-              <Text size="xs" weight="black" className="uppercase tracking-widest text-[9px]">Entrenamiento</Text>
-          </div>
-          <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-white/20 border border-white/40 rounded-full" />
-              <Text size="xs" weight="black" className="uppercase tracking-widest text-[9px]">Día Vacío</Text>
+          {/* Leyenda debajo del calendario centrado */}
+          <div className="mt-4 flex items-center justify-center gap-6 opacity-50">
+            <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                <Text size="xs" weight="black" className="uppercase tracking-widest text-[9px]">Entrenamiento</Text>
+            </div>
+            <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-white/20 border border-white/40 rounded-full" />
+                <Text size="xs" weight="black" className="uppercase tracking-widest text-[9px]">Sin datos</Text>
+            </div>
           </div>
         </div>
       </main>
