@@ -49,7 +49,7 @@ const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
       setShowForm(false);
       loadData();
       setNoti({
-        isOpen: true, type: "success", title: "¡Arsenal Actualizado!",
+        isOpen: true, type: "success", title: "¡Ejercicios Actualizados!",
         message: `El ejercicio fue ${isEdit ? 'editado' : 'creado'} correctamente.`
       });
     } catch (error) {
@@ -59,7 +59,7 @@ const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
 
   const handleDeleteRequest = (ej: any) => {
     setNoti({
-      isOpen: true, type: "delete", title: "¿Eliminar del Arsenal?",
+      isOpen: true, type: "delete", title: "¿Eliminar Ejercicio?",
       message: `Estas por borrar "${ej.nombre}".`,
       onConfirm: async () => {
         await deleteEjercicio(ej.id);
@@ -79,7 +79,7 @@ const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
         <div className="w-16 h-16 border-4 border-purple-600/20 border-t-purple-600 rounded-full animate-spin"></div>
         <FaDumbbell className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-purple-600 animate-pulse" size={24} />
       </div>
-      <Text size="xs" weight="black" className="uppercase tracking-[0.4em] text-gray-500">Sincronizando Arsenal</Text>
+      <Text size="xs" weight="black" className="uppercase tracking-[0.4em] text-gray-500">Sincronizando Ejercicios</Text>
     </div>
   );
 
@@ -93,7 +93,7 @@ const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
             <button onClick={goBack} className="group flex items-center gap-3 active:scale-95 transition-all text-left">
               <FaChevronLeft className="text-purple-500 text-xl group-hover:-translate-x-1 transition-transform" />
               <div>
-                <Text size="2xl" weight="black" variant="gradient" className="uppercase italic leading-none">ARSENAL</Text>
+                <Text size="2xl" weight="black" variant="gradient" className="uppercase italic leading-none">Ejercicios</Text>
                 <Text size="xs" className="text-gray-500 font-bold uppercase tracking-widest">{filtered.length} Movimientos</Text>
               </div>
             </button>

@@ -165,7 +165,7 @@ const EjercicioForm: React.FC<Props> = ({ userRole, ejercicio, onClose, onSucces
     <Modal 
       isOpen={true} 
       onClose={onClose} 
-      title={ejercicio ? "Editar Arsenal" : "Nuevo Ejercicio"}
+      title={ejercicio ? "Editar Ejercicios" : "Nuevo Ejercicio"}
     >
       <div className="space-y-6 max-h-[70vh] overflow-y-auto no-scrollbar pr-1">
         

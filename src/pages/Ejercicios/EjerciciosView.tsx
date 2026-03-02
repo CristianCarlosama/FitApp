@@ -82,7 +82,7 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
           <div className="w-16 h-16 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin"></div>
           <FaDumbbell className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-purple-500 animate-pulse" size={20} />
         </div>
-        <Text size="xs" weight="black" className="uppercase tracking-[0.3em] text-gray-400">Desbloqueando Arsenal...</Text>
+        <Text size="xs" weight="black" className="uppercase tracking-[0.3em] text-gray-400">Desbloqueando Ejercicios...</Text>
       </div>
     </div>
   );
@@ -97,10 +97,9 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
               <div className="bg-white/5 p-3 rounded-2xl group-hover:bg-purple-600 transition-colors">
                 <FaChevronLeft className="text-white text-sm" />
               </div>
-              <div className="flex flex-col">
-                <Text size="2xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none italic">ARMORY</Text>
-                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase">
-                  {selectedClase ? `/ ${selectedClase}` : "Todos los Ejercicios"}
+              <div className="flex flex-col items-start">
+                <Text size="2xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none italic">ARES</Text>
+                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase">Ejercicios / {selectedClase || "Explorar"}
                 </Text>
               </div>
             </button>
@@ -179,7 +178,6 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                     </span>
                   </div>
                 </div>
-
                 {/* Info de la Card */}
                 <div className="p-6 flex flex-col flex-1 justify-between bg-[#161925]">
                   <div>
@@ -190,7 +188,6 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                       {e.descripcion || "Optimiza tu biomecánica con este movimiento técnico."}
                     </Text>
                   </div>
-
                   {/* Badges de Músculos */}
                   <div className="mt-4 flex flex-wrap gap-2">
                     <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg border border-white/5">

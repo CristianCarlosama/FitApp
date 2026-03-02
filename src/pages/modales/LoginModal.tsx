@@ -54,7 +54,7 @@ const LoginModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) => {
       setNotif({ 
         open: true, 
         title: "¡Éxito!", 
-        message: "Acceso concedido. Entrando FitApp...", 
+        message: "Acceso concedido. Entrando AresApp...", 
         type: "success" 
       });
 
@@ -92,7 +92,7 @@ const LoginModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) => {
             <Input
               label="Usuario o correo"
               name="login"
-              placeholder="atleta@fitapp.com"
+              placeholder="usuario@aresapp.com"
               value={form.login}
               onChange={handleChange}
               size="md"

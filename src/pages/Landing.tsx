@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import logo from '../assets/AresGymFT.png'
+
 import RegisterModal from './modales/RegisterModal';
 import LoginModal from './modales/LoginModal';
+
 import EjerciciosView from './Ejercicios/EjerciciosView';
 import CRUDEjercicios from './EjercicioDev/CRUDEjercicios';
 import TemporizadorView from './Temporizador/TemporizadorView';
 import CronometroView from './Cronometro/CronometroView';
 import SesionActiva from './Entrenamiento/SesionActiva';
+import RutinasView from './Rutinas/RutinasView';
+import CalendarioView from './Calendario/Calendario';
+
 import Button from '../components/Buttons';
 import Text from '../components/Texts';
 import Card from '../components/Cards';
@@ -18,7 +23,6 @@ import {
   FaRuler, FaCommentDots, FaMapMarkedAlt, FaBars, FaTimes,
   FaUserCircle, FaCog, FaLifeRing, FaSignOutAlt, FaImages 
 } from 'react-icons/fa';
-import RutinasView from './Rutinas/RutinasView';
 
 type ViewType =
   | "landing"
@@ -243,16 +247,10 @@ const Landing: React.FC = () => {
       
       case "calendario":
         return (
-            <div className="p-10 space-y-4">
-              <button
-                onClick={() => setActiveView("landing")}
-                className="text-gray-400 hover:text-white transition"
-              >
-                ← Volver
-              </button>
-              <div>Próximamente Calendario</div>
-            </div>
-          );
+          <CalendarioView
+            goBack={() => setActiveView("landing")}
+          />
+        );
 
       default:
         return (
@@ -281,8 +279,7 @@ const Landing: React.FC = () => {
     { title: 'Medidas', view: 'medidas', icon: <FaRuler className="text-emerald-400" />, description: 'Medidas Corporales.' },
     { title: 'Comentarios', view: 'comentarios', icon: <FaCommentDots className="text-yellow-400" />, description: 'Motívate tú mismo.' },
     { title: 'Fotos', view: 'fotos', icon: <FaImages className="text-pink-400" />, description: 'Sigue tu progreso.' },
-    { title: 'Calendario', view: 'calendario', icon: <FaCalendarAlt className="text-gray-400" />, description: 'Sigue tu progreso.' 
-    },
+    { title: 'Calendario', view: 'calendario', icon: <FaCalendarAlt className="text-gray-400" />, description: 'Sigue tu progreso.' },
   ];
 
   if (loading) {
@@ -315,7 +312,7 @@ const Landing: React.FC = () => {
                 onClick={() => setActiveView("landing")}
                 className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-500 rounded-xl flex items-center justify-center shadow-lg cursor-pointer"
               >
-                <img src={logo} alt="Logo FITAPP" className="w-10 h-10 rounded-xl" />
+                <img src={logo} alt="Logo ARESAPP" className="w-10 h-10 rounded-xl" />
               </div>
               <Text size="2xl" weight="bold">FIT<span className="text-purple-500">APP</span></Text>
             </div>
@@ -362,9 +359,9 @@ const Landing: React.FC = () => {
             <FaBars className="text-md" />
           </button>
           <button onClick={() => setActiveView("landing")} className="cursor-pointer">
-            <Text size="lg" weight="bold">FITAPP</Text>
+            <Text size="lg" weight="bold">ARESAPP</Text>
           </button>
-          <img src={logo} alt="Logo FITAPP" className="w-8 h-8 rounded-full cursor-pointer" onClick={() => setActiveView("landing")} />
+          <img src={logo} alt="Logo ARESAPP" className="w-8 h-8 rounded-full cursor-pointer" onClick={() => setActiveView("landing")} />
         </header>
 
         {/* CONTENEDOR DINÁMICO */}

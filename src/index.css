@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 1. Ocultar scroll en TODA la página (Body) */
 html, body {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE y Edge */
@@ -12,7 +11,6 @@ body::-webkit-scrollbar {
   display: none; /* Chrome, Safari y Opera */
 }
 
-/* 2. Clase utilitaria para contenedores específicos (como tu carrusel) */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -22,7 +20,6 @@ body::-webkit-scrollbar {
   scrollbar-width: none;
 }
 
-/* 3. Ocultar en Modales o áreas con overflow (como el Registro de Atleta) */
 * {
   -ms-overflow-style: none;
   scrollbar-width: none;

@@ -86,7 +86,7 @@ const RegisterModal: React.FC<Props> = ({ isOpen, onClose }) => {
       setNotif({ 
         open: true, 
         title: "¡Éxito!", 
-        message: "Perfil creado. ¡Bienvenido al Cambio, atleta!", 
+        message: "Perfil creado. ¡Bienvenido al Cambio!", 
         type: "success" 
       });
 
@@ -107,7 +107,7 @@ const RegisterModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} title="Registro de Atleta">
+      <Modal isOpen={isOpen} onClose={onClose} title="Registro de Usuario">
         <div className="flex flex-col items-center mb-5">
           <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-500 rounded-lg flex items-center justify-center mb-2 shadow-lg shadow-purple-500/20">
             <FaUserPlus className="text-white text-lg" />

@@ -12,7 +12,7 @@ import Button from "../../../components/Buttons";
 import Modal from "../../../components/Modal";
 import Carousel from "../../../components/Carousel";
 
-// --- INTERFACES PARA QUE TYPESCRIPT NO DE ERROR ---
+// --- INTERFACES ---
 interface RutinaDetalleProps {
   rutina: any;
   onClose: () => void;

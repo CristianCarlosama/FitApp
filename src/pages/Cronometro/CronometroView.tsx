@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaArrowLeft, FaPlay, FaStop, FaHistory, FaUndo, FaCog, FaClock } from "react-icons/fa";
+import { 
+  FaPlay, FaStop, FaHistory, 
+  FaUndo, FaClock, FaChevronLeft 
+} from "react-icons/fa";
+
+// --- COMPONENTES REUTILIZABLES ---
 import Text from "../../components/Texts";
 import Button from "../../components/Buttons";
-import Modal from "../../components/Modal"; // El que antes era Modalitpwiwiiw
 
 interface Lap {
   id: number;
@@ -14,39 +18,23 @@ interface CronometroViewProps {
 }
 
 const CronometroView: React.FC<CronometroViewProps> = ({ goBack }) => {
-  // Estados de lógica
   const [tiempo, setTiempo] = useState<number>(0);
   const [estaCorriendo, setEstaCorriendo] = useState<boolean>(false);
   const [vueltas, setVueltas] = useState<Lap[]>([]);
-  const [modoHITT, setModoHIIT] = useState<boolean>(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // Configuración HIIT (en segundos)
-  const [timerConfig, setTimerConfig] = useState(60); 
   const idIntervalo = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const radio = 135;
   const circunferencia = 2 * Math.PI * radio;
   
-  // Cálculo de progreso dinámico
-  const limite = modoHITT ? timerConfig * 1000 : 60000;
-  const progreso = ((tiempo % limite) / limite) * circunferencia;
+  // Sincronizado con el giro visual de 60s
+  const progreso = ((tiempo % 60000) / 60000) * circunferencia;
 
   const iniciarCronometro = () => {
     if (estaCorriendo) return;
     setEstaCorriendo(true);
     idIntervalo.current = setInterval(() => {
-      setTiempo((t) => {
-        if (modoHITT) {
-          if (t <= 0) {
-            pausarCronometro();
-            return 0;
-          }
-          return t - 10;
-        }
-        return t + 10;
-      });
-    }, 10);
+      setTiempo((t) => t + 1000);
+    }, 1000);
   };
 
   const pausarCronometro = () => {
@@ -59,12 +47,12 @@ const CronometroView: React.FC<CronometroViewProps> = ({ goBack }) => {
 
   const reiniciarCronometro = () => {
     pausarCronometro();
-    setTiempo(modoHITT ? timerConfig * 1000 : 0);
+    setTiempo(0);
     setVueltas([]);
   };
 
   const registrarVuelta = () => {
-    if (tiempo === 0 || modoHITT) return;
+    if (tiempo === 0) return;
     const nuevaVuelta: Lap = { id: vueltas.length + 1, time: tiempo };
     setVueltas([nuevaVuelta, ...vueltas]);
   };
@@ -73,60 +61,67 @@ const CronometroView: React.FC<CronometroViewProps> = ({ goBack }) => {
     const totalSegundos = Math.floor(ms / 1000);
     const minutos = Math.floor(totalSegundos / 60);
     const segundos = totalSegundos % 60;
-    const centisegundos = Math.floor((ms % 1000) / 10);
-    return `${minutos.toString().padStart(2, '0')}:${segundos
-      .toString()
-      .padStart(2, '0')}.${centisegundos.toString().padStart(2, '0')}`;
+    return `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
   };
 
   useEffect(() => {
     return () => { if (idIntervalo.current) clearInterval(idIntervalo.current); };
   }, []);
 
-  // Cambiar modo y resetear
-  const toggleModo = () => {
-    pausarCronometro();
-    setModoHIIT(!modoHITT);
-    setTiempo(!modoHITT ? timerConfig * 1000 : 0);
-    setVueltas([]);
-  };
-
   return (
-    <section className="flex flex-col h-screen p-4 bg-[#0f111a] text-white overflow-hidden">
-      {/* Header con tu componente Button Glass */}
-      <div className="flex justify-between items-center mb-6 z-50">
-        <Button variant="glass" size="sm" onClick={goBack} className="!rounded-full">
-          <FaArrowLeft className="mr-1" /> VOLVER
-        </Button>
-        <Button variant="glass" size="sm" onClick={toggleModo} className="uppercase tracking-widest">
-          {modoHITT ? <><FaClock className="mr-2" /> Cronómetro</> : <><FaHistory className="mr-2" /> Modo HIIT</>}
-        </Button>
-      </div>
+    <div className="flex flex-col h-screen bg-[#0f111a] font-sans">
+      
+      {/* HEADER STICKY */}
+      <header className="sticky top-0 z-40 bg-[#0f111a]/95 backdrop-blur-xl border-b border-white/5 p-4 md:p-6">
+        <div className="max-w-[1400px] mx-auto flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <button onClick={goBack} className="group flex items-center gap-3 active:scale-95 transition-all w-fit">
+              <FaChevronLeft className="text-purple-500" />
+              <div className="flex flex-col items-start">
+                <Text size="xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none italic">ARES</Text>
+                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase italic">Utilidades / Cronómetro</Text>
+              </div>
+            </button>
+            <div className="p-3 bg-purple-600/10 rounded-2xl border border-purple-500/20">
+              <FaClock className="text-purple-500" />
+            </div>
+          </div>
+        </div>
+      </header>
 
-      <div className="flex flex-col items-center justify-start flex-grow gap-8">
-        <Text weight="black" size="lg" className="italic uppercase text-purple-500 tracking-tighter">
-          {modoHITT ? "Temporizador de Intervalos" : "Sesión de Tiempo"}
-        </Text>
+      {/* ÁREA DEL RELOJ */}
+      <main className="flex-1 flex flex-col items-center justify-center p-8 gap-12 overflow-hidden">
         
-        {/* CONTENEDOR DEL CÍRCULO */}
-        <div className="relative flex items-center justify-center w-72 h-72 md:w-80 md:h-80">
-          <div className={`absolute inset-0 rounded-full blur-[60px] transition-all duration-700 ${
-            estaCorriendo ? (modoHITT ? 'bg-blue-600 opacity-20' : 'bg-purple-600 opacity-25') : 'opacity-5'
+        <div className="flex flex-col items-center gap-2">
+            <Text size="xs" weight="black" className="uppercase tracking-[0.4em] text-purple-500/60 italic">
+                Sesión de Tiempo
+            </Text>
+        </div>
+
+        {/* CÍRCULO - MISMO TAMAÑO QUE EL TEMPORIZADOR */}
+        <div className="relative flex items-center justify-center w-64 h-64 md:w-72 md:h-72 my-2">
+          {/* Glow de fondo dinámico */}
+          <div className={`absolute inset-0 rounded-full blur-[80px] transition-all duration-1000 ${
+            estaCorriendo ? 'bg-indigo-600/20 shadow-[0_0_100px_rgba(99,102,241,0.2)]' : 'bg-purple-600/5'
           }`}></div>
 
           <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 300 300">
-            <circle cx="150" cy="150" r={radio} fill="transparent" stroke="#1f2232" strokeWidth="6" />
+            {/* Círculo base fondo */}
+            <circle cx="150" cy="150" r={radio} fill="transparent" stroke="#161926" strokeWidth="8" />
+            
+            {/* Anillo de progreso sólido */}
             <circle
               cx="150" cy="150" r={radio} fill="transparent"
-              stroke={modoHITT ? "#3b82f6" : "url(#neonGrad)"}
-              strokeWidth="10"
+              stroke="url(#timerGradient)" 
+              strokeWidth="12"
               strokeDasharray={circunferencia}
-              strokeDashoffset={modoHITT ? (circunferencia * (1 - tiempo / (timerConfig * 1000))) : (circunferencia - progreso)}
+              strokeDashoffset={circunferencia - progreso}
               strokeLinecap="round"
-              className="transition-all duration-75 ease-linear shadow-lg"
+              className="transition-all duration-1000 ease-linear shadow-lg"
             />
+
             <defs>
-              <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#a855f7" />
                 <stop offset="100%" stopColor="#6366f1" />
               </linearGradient>
@@ -134,78 +129,58 @@ const CronometroView: React.FC<CronometroViewProps> = ({ goBack }) => {
           </svg>
 
           <div className="relative z-10 flex flex-col items-center">
-            <span className="text-5xl md:text-6xl font-mono font-black tracking-tighter drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+            {/* NÚMEROS - MISMO TAMAÑO QUE EL TEMPORIZADOR */}
+            <span className="text-6xl md:text-7xl font-black tracking-tighter text-white tabular-nums drop-shadow-2xl">
               {formatearTiempo(tiempo)}
             </span>
-            {modoHITT && (
-               <button onClick={() => setIsModalOpen(true)} className="mt-2 text-blue-400 flex items-center gap-1 text-[10px] font-bold uppercase hover:text-white transition-colors">
-                 <FaCog /> Ajustar Meta
-               </button>
-            )}
           </div>
         </div>
 
-        {/* CONTROLES USANDO TU COMPONENTE BUTTON */}
-        <div className="flex items-center gap-6 z-50">
-          <Button variant="outline" onClick={reiniciarCronometro} className="!p-4 !rounded-full">
-            <FaUndo />
+        {/* CONTROLES */}
+        <div className="flex items-center gap-8 z-50">
+          <Button variant="glass" onClick={reiniciarCronometro} className="!w-14 !h-14 !p-0 !rounded-3xl !bg-white/[0.03] !border-white/5 shadow-inner flex items-center justify-center">
+            <FaUndo className="text-gray-400" />
           </Button>
 
           <Button 
             variant="primary" 
             onClick={estaCorriendo ? pausarCronometro : iniciarCronometro}
-            className={`!w-24 !h-24 !rounded-full !p-0 text-2xl ${estaCorriendo ? 'from-red-600 to-orange-500 shadow-red-500/20' : ''}`}
+            className={`!w-24 !h-24 !rounded-[2.5rem] !p-0 shadow-2xl transition-all duration-500 active:scale-90 
+              ${estaCorriendo 
+                ? 'from-orange-600 to-red-600 shadow-red-500/40 rotate-180' 
+                : 'from-blue-500 via-indigo-500 to-purple-600 shadow-indigo-500/40' 
+              }`}
           >
-            {estaCorriendo ? <FaStop /> : <FaPlay className="ml-1" />}
+            {estaCorriendo ? <FaStop size={24} /> : <FaPlay size={24} className="ml-1" />}
           </Button>
 
           <Button 
-            variant="outline" 
+            variant="glass" 
             onClick={registrarVuelta} 
-            disabled={!estaCorriendo || modoHITT}
-            className="!p-4 !rounded-full"
+            disabled={!estaCorriendo}
+            className={`!w-14 !h-14 !p-0 !rounded-3xl !bg-white/[0.03] !border-white/5 flex items-center justify-center ${!estaCorriendo && 'opacity-20'}`}
           >
-            <FaHistory />
+            <FaHistory className="text-gray-400" />
           </Button>
         </div>
 
-        {/* LISTA DE VUELTAS O INFO HIIT */}
-        <div className="w-full max-w-md flex-grow overflow-y-auto no-scrollbar mt-4 border-t border-white/5">
-          {!modoHITT ? (
-            vueltas.map((vuelta) => (
-              <div key={vuelta.id} className="flex justify-between items-center py-4 border-b border-white/5 px-2 animate-in fade-in slide-in-from-bottom-2">
-                <Text size="xs" weight="black" className="text-gray-500 uppercase tracking-widest">Vuelta {vuelta.id.toString().padStart(2, '0')}</Text>
-                <Text weight="bold" className="font-mono text-purple-400">{formatearTiempo(vuelta.time)}</Text>
-              </div>
-            ))
-          ) : (
-            <div className="p-6 text-center opacity-40">
-               <Text size="sm">Modo HIIT activo: El tiempo retrocederá hasta llegar a 0.</Text>
-            </div>
-          )}
+        {/* LISTA DE VUELTAS */}
+        <div className="w-full max-w-sm h-40 overflow-y-auto no-scrollbar bg-white/[0.02] rounded-[2.5rem] border border-white/5 p-5">
+            {vueltas.length > 0 ? (
+                vueltas.map((vuelta) => (
+                    <div key={vuelta.id} className="flex justify-between items-center py-3 px-2 border-b border-white/5 last:border-none animate-in fade-in slide-in-from-bottom-2">
+                        <Text size="xs" weight="black" className="text-gray-600 uppercase italic">Lap {vuelta.id.toString().padStart(2, '0')}</Text>
+                        <Text weight="black" className="text-white font-mono">{formatearTiempo(vuelta.time)}</Text>
+                    </div>
+                ))
+            ) : (
+                <div className="h-full flex items-center justify-center opacity-20">
+                    <Text size="xs" weight="black" className="uppercase italic tracking-[0.2em]">Historial Libre</Text>
+                </div>
+            )}
         </div>
-      </div>
-
-      {/* MODAL PARA CONFIGURAR HIIT */}
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title="Configurar Intervalo"
-      >
-        <div className="flex flex-col gap-4 p-4">
-          <Text className="text-center">Define cuántos segundos durará tu intervalo de trabajo:</Text>
-          <input 
-            type="number" 
-            value={timerConfig}
-            onChange={(e) => setTimerConfig(Number(e.target.value))}
-            className="bg-[#0f111a] border border-white/10 p-4 rounded-xl text-center text-2xl font-black text-purple-500 outline-none focus:border-purple-500"
-          />
-          <Button variant="primary" onClick={() => { reiniciarCronometro(); setIsModalOpen(false); }}>
-            GUARDAR CONFIGURACIÓN
-          </Button>
-        </div>
-      </Modal>
-    </section>
+      </main>
+    </div>
   );
 };
 
