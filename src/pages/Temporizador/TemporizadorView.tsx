@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaArrowLeft, FaPlay, FaPause, FaUndo, FaClock, FaBolt } from "react-icons/fa";
+import { FaArrowLeft, FaPlay, FaStop, FaUndo, FaClock, FaBolt } from "react-icons/fa";
 import Text from "../../components/Texts";
 import Button from "../../components/Buttons";
 
@@ -42,19 +42,19 @@ const TemporizadorView: React.FC<TemporizadorViewProps> = ({ goBack }) => {
     if (!esOvertime) setTiempoMaximo(prev => prev + ms);
   };
 
-const iniciarTemporizador = () => {
-  if (estaCorriendo) return;
+  const iniciarTemporizador = () => {
+    if (estaCorriendo) return;
     setEstaCorriendo(true);
 
     idIntervalo.current = setInterval(() => {
       setTiempoRestante((t) => {
         if (!esOvertimeRef.current && t <= 0) {
           setEsOvertime(true);
-          return 10;
+          return 1000;
         }
-        return esOvertimeRef.current ? t + 10 : t - 10;
+        return esOvertimeRef.current ? t + 1000 : t - 1000;
       });
-    }, 10);
+    }, 1000);
   };
 
   useEffect(() => {
@@ -76,7 +76,7 @@ const iniciarTemporizador = () => {
   };
 
   const formatearTiempoDisplay = (ms: number) => {
-    const totalSegundos = Math.floor(ms / 1000);
+    const totalSegundos = Math.floor(Math.abs(ms) / 1000);
     const horas = Math.floor(totalSegundos / 3600);
     const minutos = Math.floor((totalSegundos % 3600) / 60);
     const segundos = totalSegundos % 60;
@@ -106,17 +106,22 @@ const iniciarTemporizador = () => {
             <FaBolt className={estaCorriendo ? "text-yellow-400 animate-pulse" : "text-gray-600"} />
         </div>
       </header>
+
       <div className="flex flex-col items-center justify-between flex-grow gap-4 py-2">
         {/* INPUTS DE TIEMPO PERSONALIZADO */}
-        <div className={`transition-all duration-500 ${estaCorriendo ? 'hidden' : 'flex flex-col items-center gap-2'}`}>
-          <div className="flex items-center bg-white/5 p-3 rounded-[2rem] border border-white/10 backdrop-blur-md scale-90 md:scale-100">
+        <div className={`transition-all duration-500 ${estaCorriendo ? 'opacity-0 scale-75 pointer-events-none absolute' : 'flex flex-col items-center gap-2 relative'}`}>
+          <div className="flex items-center bg-white/5 p-3 rounded-[2rem] border border-white/10 backdrop-blur-md">
             {[ {v: h, set: setH, label: 'H'}, {v: m, set: setM, label: 'M'}, {v: s, set: setS, label: 'S'} ].map((item, idx) => (
               <React.Fragment key={item.label}>
                 <div className="flex flex-col items-center px-2">
                   <input 
                     type="number" 
                     value={item.v} 
-                    onChange={(e) => { item.set(e.target.value); actualizarDesdeInputs(idx === 0 ? e.target.value : h, idx === 1 ? e.target.value : m, idx === 2 ? e.target.value : s); }} 
+                    onChange={(e) => { 
+                      const val = e.target.value.slice(0, 2);
+                      item.set(val); 
+                      actualizarDesdeInputs(idx === 0 ? val : h, idx === 1 ? val : m, idx === 2 ? val : s); 
+                    }} 
                     className="bg-transparent w-12 text-center text-2xl font-black focus:text-purple-400 outline-none"
                   />
                   <Text size="xs" weight="black" className="text-gray-500 uppercase">{item.label}</Text>
@@ -126,36 +131,38 @@ const iniciarTemporizador = () => {
             ))}
           </div>
         </div>
-        {/* CÍRCULO PRINCIPAL */}
+
+        {/* CÍRCULO PRINCIPAL (Igual al Cronómetro) */}
         <div className="relative flex items-center justify-center w-64 h-64 md:w-72 md:h-72 my-2">
           <div className={`absolute inset-0 rounded-full blur-[80px] transition-all duration-1000 
-            ${esOvertime ? 'bg-red-600 opacity-40 animate-pulse' : estaCorriendo ? 'bg-purple-600 opacity-20' : 'bg-purple-600 opacity-5'}`}>
+            ${esOvertime ? 'bg-red-600 opacity-30 animate-pulse' : estaCorriendo ? 'bg-indigo-600/20' : 'bg-purple-600/5'}`}>
           </div>
           
           <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 300 300">
-            <circle cx="150" cy="150" r={radio} fill="transparent" stroke="#161926" strokeWidth="12" />
+            <circle cx="150" cy="150" r={radio} fill="transparent" stroke="#161926" strokeWidth="8" />
             <circle
               cx="150" cy="150" r={radio}
               fill="transparent"
-              stroke={esOvertime ? "#ef4444" : "url(#purpleGrad)"}
-              strokeWidth="16"
+              stroke={esOvertime ? "#ef4444" : "url(#timerGrad)"}
+              strokeWidth="12"
               strokeDasharray={circunferencia}
               strokeDashoffset={circunferencia - progreso}
               strokeLinecap="round"
-              className="transition-all duration-100 ease-linear"
+              className="transition-all duration-1000 ease-linear"
             />
             <defs>
-              <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#a855f7" />
                 <stop offset="100%" stopColor="#6366f1" />
               </linearGradient>
             </defs>
           </svg>
+
           <div className="relative z-10 flex flex-col items-center">
             {esOvertime && (
               <Text size="xs" weight="black" className="text-red-500 uppercase tracking-[0.3em] mb-1 animate-bounce">OVERTIME</Text>
             )}
-            <span className={`text-5xl md:text-6xl font-mono font-black tracking-tighter drop-shadow-2xl 
+            <span className={`text-6xl md:text-7xl font-black tracking-tighter tabular-nums drop-shadow-2xl 
               ${esOvertime ? 'text-red-500' : 'text-white'}`}>
               {esOvertime ? `+${formatearTiempoDisplay(tiempoRestante)}` : formatearTiempoDisplay(tiempoRestante)}
             </span>
@@ -169,43 +176,38 @@ const iniciarTemporizador = () => {
           </div>
         </div>
 
-        {/* BOTONES DE PÁNICO Y CONTROLES */}
-        <div className="flex flex-col items-center gap-4 w-full">
+        {/* CONTROLES (Misma animación y estilo que Cronómetro) */}
+        <div className="flex flex-col items-center gap-6 w-full">
           <div className={`flex gap-4 transition-all duration-500 ${estaCorriendo ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-            <Button variant="glass" size="sm" onClick={() => agregarTiempoExtra(15000)} className="!rounded-xl !bg-white/5 border-white/10 italic font-black text-purple-400 !px-4">
+            <Button variant="glass" size="sm" onClick={() => agregarTiempoExtra(15000)} className="!rounded-xl !bg-white/5 border-white/10 italic font-black text-purple-400 !px-4 hover:bg-purple-500/10">
               +15S
             </Button>
-            <Button variant="glass" size="sm" onClick={() => agregarTiempoExtra(30000)} className="!rounded-xl !bg-white/5 border-white/10 italic font-black text-purple-400 !px-4">
+            <Button variant="glass" size="sm" onClick={() => agregarTiempoExtra(30000)} className="!rounded-xl !bg-white/5 border-white/10 italic font-black text-purple-400 !px-4 hover:bg-purple-500/10">
               +30S
             </Button>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-8">
             <Button 
               variant="glass" 
-              className="!w-14 !h-14 !rounded-2xl border-white/5 bg-white/5 flex items-center justify-center hover:bg-red-500/10 group" 
+              className="!w-14 !h-14 !rounded-3xl border-white/5 bg-white/5 flex items-center justify-center hover:bg-red-500/10 group transition-all" 
               onClick={reiniciarTemporizador}
             >
-              <FaUndo size={16} className="text-gray-500 group-hover:text-red-400 transition-colors" />
+              <FaUndo size={16} className="text-gray-500 group-hover:text-red-400" />
             </Button>
 
-            {!estaCorriendo ? (
-              <Button 
-                variant="primary" 
-                className="!w-20 !h-20 !rounded-[2rem] shadow-purple-500/40 shadow-2xl z-50" 
-                onClick={iniciarTemporizador}
-              >
-                <FaPlay size={24} className="ml-1" />
-              </Button>
-            ) : (
-              <Button 
-                variant="glass" 
-                className="!w-20 !h-20 !rounded-[2rem] border-purple-500 bg-purple-500/5 shadow-purple-500/20 shadow-xl z-50" 
-                onClick={pausarTemporizador}
-              >
-                <FaPause size={24} className="text-purple-400" />
-              </Button>
-            )}
+            <Button 
+              variant="primary" 
+              onClick={estaCorriendo ? pausarTemporizador : iniciarTemporizador}
+              className={`!w-24 !h-24 !rounded-[2.5rem] !p-0 shadow-2xl transition-all duration-500 active:scale-90 
+                ${estaCorriendo 
+                  ? 'from-orange-600 to-red-600 shadow-red-500/40 rotate-180' 
+                  : 'from-blue-500 via-indigo-500 to-purple-600 shadow-indigo-500/40' 
+                }`}
+            >
+              {estaCorriendo ? <FaStop size={24} /> : <FaPlay size={24} className="ml-1" />}
+            </Button>
+
             <div className="w-14" /> 
           </div>
         </div>
