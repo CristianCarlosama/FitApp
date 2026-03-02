@@ -11,7 +11,7 @@ import TemporizadorView from './Temporizador/TemporizadorView';
 import CronometroView from './Cronometro/CronometroView';
 import SesionActiva from './Entrenamiento/SesionActiva';
 import RutinasView from './Rutinas/RutinasView';
-import CalendarioView from './Calendario/Calendario';
+import CalendarioView from './Calendario/CalendarioView';
 
 import Button from '../components/Buttons';
 import Text from '../components/Texts';
@@ -291,7 +291,7 @@ const Landing: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#0f111a] text-white flex font-sans overflow-x-hidden">
+<div className="min-h-screen w-full bg-[#0f111a] text-white flex font-sans overflow-x-hidden">
       
       {/* OVERLAY PARA MÓVIL */}
       {sidebarOpen && (
@@ -301,17 +301,14 @@ const Landing: React.FC = () => {
         />
       )}
 
-      {/* SIDEBAR IZQUIERDA */}
+      {/* SIDEBAR IZQUIERDA (ANCHO: 72 -> 288px) */}
       <aside className={`fixed top-0 left-0 h-full w-72 bg-[#161925] border-r border-white/10 z-50 transition-all duration-300 transform 
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
-        
+        {/* ... (Contenido de tu sidebar izquierda igual) */}
         <div className="flex flex-col h-full p-6">
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-center gap-3">
-              <div 
-                onClick={() => setActiveView("landing")}
-                className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-500 rounded-xl flex items-center justify-center shadow-lg cursor-pointer"
-              >
+              <div onClick={() => setActiveView("landing")} className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-500 rounded-xl flex items-center justify-center shadow-lg cursor-pointer">
                 <img src={logo} alt="Logo ARESAPP" className="w-10 h-10 rounded-xl" />
               </div>
               <Text size="2xl" weight="bold">FIT<span className="text-purple-500">APP</span></Text>
@@ -320,27 +317,18 @@ const Landing: React.FC = () => {
               <FaTimes size={24} />
             </button>
           </div>
-
           <nav className="flex-1 space-y-2">
             <NavItem icon={<FaUserCircle />} label="Mi Cuenta" />
             <NavItem icon={<FaCog />} label="Configuración" />
             <NavItem icon={<FaLifeRing />} label="Soporte Técnico" />
-            
             {(userRole === "Admin" || userRole === "Dev") && (
-              <NavItem 
-                icon={<FaDumbbell />} 
-                label="CRUD Ejercicios" 
-                onClick={() => setActiveView("crudEjercicios")} 
-              />
+              <NavItem icon={<FaDumbbell />} label="CRUD Ejercicios" onClick={() => setActiveView("crudEjercicios")} />
             )}
           </nav>
-
           <div className="mt-auto pt-6 border-t border-white/5 space-y-3">
             {!isAuthenticated ? (
-              <>
-                <Button variant="primary" className="w-full !rounded-xl" onClick={() => setShowLogin(true)}>Entrar</Button>
-                <Button variant="outline" className="w-full !rounded-xl !bg-transparent !border-white/10" onClick={() => setShowRegister(true)}>Registrarse</Button>
-              </>
+              <><Button variant="primary" className="w-full !rounded-xl" onClick={() => setShowLogin(true)}>Entrar</Button>
+                <Button variant="outline" className="w-full !rounded-xl !bg-transparent !border-white/10" onClick={() => setShowRegister(true)}>Registrarse</Button></>
             ) : (
               <button onClick={handleLogout} className="flex items-center gap-3 text-red-400 hover:bg-red-500/10 w-full p-3 rounded-xl transition">
                 <FaSignOutAlt /> <span className="font-medium">Cerrar Sesión</span>
@@ -350,25 +338,22 @@ const Landing: React.FC = () => {
         </div>
       </aside>
 
-      {/* CONTENIDO PRINCIPAL */}
-      <main className="flex-1 flex flex-col min-w-0 lg:ml-72 xl:mr-80 transition-all duration-300 z-10 relative">
+      <main className="flex-1 flex flex-col min-w-0 lg:ml-72 xl:mr-80 min-h-screen transition-all duration-300 relative">
         
         {/* TOPBAR MÓVIL */}
         <header className="lg:hidden h-16 flex items-center justify-between px-6 bg-[#161925]/80 backdrop-blur-md sticky top-0 z-30 border-b border-white/5">
           <button onClick={() => setSidebarOpen(true)} className="p-2 bg-white/5 rounded-lg">
             <FaBars className="text-md" />
           </button>
-          <button onClick={() => setActiveView("landing")} className="cursor-pointer">
-            <Text size="lg" weight="bold">ARESAPP</Text>
-          </button>
-          <img src={logo} alt="Logo ARESAPP" className="w-8 h-8 rounded-full cursor-pointer" onClick={() => setActiveView("landing")} />
+          <Text size="lg" weight="bold">ARESAPP</Text>
+          <img src={logo} alt="Logo ARESAPP" className="w-8 h-8 rounded-full" />
         </header>
 
-        {/* CONTENEDOR DINÁMICO */}
-        <div className="w-full flex-none">
+        {/* CONTENEDOR DINÁMICO CON SCROLL */}
+        <div className="flex-1 w-full max-w-[1600px] mx-auto">
           {activeView === "landing" ? (
-            <div className="p-6 md:p-10 w-full max-w-none mx-auto space-y-12">
-              <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-white/10 p-8 md:p-12">
+            <div className="p-6 md:p-10 space-y-12">
+              <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-white/10 p-8 md:p-12 shadow-2xl">
                 <div className="relative z-10 max-w-2xl">
                   <Text size="4xl" weight="bold" className="mb-4">Lleva tu cuerpo al <span className="text-purple-400">Siguiente Nivel</span></Text>
                   <Text className="text-gray-400 mb-6 italic">Gestiona tus rutinas, mide tus tiempos y alcanza tus metas con tecnología de punta.</Text>
@@ -380,41 +365,41 @@ const Landing: React.FC = () => {
                 <Text size="2xl" weight="bold" className="mb-8">Herramientas</Text>
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
                   {cards.map((card, idx) => (
-                    <Card
-                      key={idx}
-                      title={card.title}
-                      description={card.description}
-                      icon={<span className="text-2xl md:text-3xl mb-2 block">{card.icon}</span>}
-                      onClick={() => setActiveView(card.view as ViewType)}
-                    />
+                    <Card key={idx} title={card.title} description={card.description} icon={<span className="text-2xl md:text-3xl mb-2 block">{card.icon}</span>} onClick={() => setActiveView(card.view as ViewType)} />
                   ))}
                 </div>
               </section>
             </div>
           ) : (
-            <div className="h-auto min-h-0">
+            <div className="w-full">
               {renderView()}
             </div>
           )}
         </div>
 
-        {/* PUBLICIDAD PEGADA AL CONTENIDO */}
-        <footer className="w-full p-2"> 
-          <div className="bg-gradient-to-t from-black/20 to-transparent p-4 rounded-3xl border border-white/5">
-            <AdCard label="Publicidad Patrocinada - Haz clic aquí" />
-          </div>
+        {/* FOOTER (Publicidad inferior opcional) */}
+        <footer className="w-full p-6 mt-auto"> 
+          <AdCard label="Publicidad Patrocinada - Haz clic aquí" />
         </footer>
       </main>
 
-      {/* SIDEBAR DERECHA */}
-      <aside className="hidden xl:flex fixed top-0 right-0 h-full w-80 bg-[#161925] border-l border-white/10 p-6 flex-col z-50">
-        <Text size="lg" weight="bold" className="mb-6 text-green-400">Recomendados</Text>
-        <div className="space-y-6 flex-1 overflow-y-auto no-scrollbar">
-          <div className="rounded-2xl overflow-hidden aspect-video bg-gray-800 border border-white/5 relative group shrink-0">
-            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=400" className="opacity-50 group-hover:scale-110 transition duration-500 w-full h-full object-cover" alt="Suplementos" />
-            <div className="absolute bottom-4 left-4 font-bold">Suplementos 20% OFF</div>
-          </div>
-          <AdCard label="Anuncio Premium" />
+      <aside className="hidden xl:flex fixed top-0 right-0 h-full w-80 bg-[#161925] border-l border-white/10 p-8 flex-col z-40">
+        <div className="sticky top-0">
+            <Text size="lg" weight="bold" className="mb-6 text-green-400 uppercase tracking-widest italic">Recomendados</Text>
+            <div className="space-y-6">
+              <div className="rounded-2xl overflow-hidden aspect-video bg-gray-800 border border-white/5 relative group shrink-0 shadow-2xl">
+                <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=400" className="opacity-50 group-hover:scale-110 transition duration-500 w-full h-full object-cover" alt="Suplementos" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-4 flex flex-col justify-end">
+                    <span className="text-xs font-black text-white uppercase tracking-tighter leading-none">Suplementos 20% OFF</span>
+                    <span className="text-[10px] text-green-400 font-bold">Código: ARES2026</span>
+                </div>
+              </div>
+              
+              <div className="bg-white/[0.03] p-6 rounded-3xl border border-white/5">
+                <Text size="sm" weight="black" className="uppercase mb-4 text-purple-400">Anuncio Premium</Text>
+                <AdCard label="Mejora tu cuenta ahora" />
+              </div>
+            </div>
         </div>
       </aside>
 

@@ -97,16 +97,15 @@ const TemporizadorView: React.FC<TemporizadorViewProps> = ({ goBack }) => {
       <header className="flex items-center justify-between mb-4">
         <button onClick={goBack} className="flex items-center gap-3 active:scale-95 transition-all">
           <FaArrowLeft className="text-purple-500" />
-          <div className="flex flex-col">
-            <Text size="xl" weight="black" variant="gradient" className="uppercase leading-none italic">ARES TIMER</Text>
-            <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase italic">Enfoque Total</Text>
+          <div className="flex flex-col items-start">
+            <Text size="xl" weight="black" variant="gradient" className="uppercase leading-none italic">ARES</Text>
+            <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase italic">Temporizador</Text>
           </div>
         </button>
         <div className="p-2 bg-purple-500/10 rounded-xl border border-purple-500/20">
             <FaBolt className={estaCorriendo ? "text-yellow-400 animate-pulse" : "text-gray-600"} />
         </div>
       </header>
-
       <div className="flex flex-col items-center justify-between flex-grow gap-4 py-2">
         {/* INPUTS DE TIEMPO PERSONALIZADO */}
         <div className={`transition-all duration-500 ${estaCorriendo ? 'opacity-0 scale-75 pointer-events-none absolute' : 'flex flex-col items-center gap-2 relative'}`}>
@@ -131,13 +130,11 @@ const TemporizadorView: React.FC<TemporizadorViewProps> = ({ goBack }) => {
             ))}
           </div>
         </div>
-
-        {/* CÍRCULO PRINCIPAL (Igual al Cronómetro) */}
+        {/* CÍRCULO PRINCIPAL */}
         <div className="relative flex items-center justify-center w-64 h-64 md:w-72 md:h-72 my-2">
           <div className={`absolute inset-0 rounded-full blur-[80px] transition-all duration-1000 
             ${esOvertime ? 'bg-red-600 opacity-30 animate-pulse' : estaCorriendo ? 'bg-indigo-600/20' : 'bg-purple-600/5'}`}>
           </div>
-          
           <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 300 300">
             <circle cx="150" cy="150" r={radio} fill="transparent" stroke="#161926" strokeWidth="8" />
             <circle
