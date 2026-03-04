@@ -1,4 +1,5 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // 🔹 1. Importar el hook
 import { 
   FaDumbbell, 
   FaFire, 
@@ -6,12 +7,11 @@ import {
   FaPlay 
 } from "react-icons/fa";
 
-// --- COMPONENTES REUTILIZABLES ---
+// ... (Tus otros imports se mantienen igual)
 import Text from "../../../components/Texts";
 import Button from "../../../components/Buttons";
 import Modal from "../../../components/Modal";
 import Carousel from "../../../components/Carousel";
-
 // --- INTERFACES ---
 interface RutinaDetalleProps {
   rutina: any;
@@ -41,7 +41,6 @@ const EjercicioInfoModal = ({ exercise, onClose }: any) => {
       onClose={onClose} 
       className="!p-0 !max-w-sm overflow-hidden z-[120]"
     >
-      {/* ÁREA DE CARRUSEL REUTILIZABLE */}
       <div className="relative h-60 w-full bg-black group">
         <Carousel className="h-full">
           {media.length > 0 ? (
@@ -75,7 +74,6 @@ const EjercicioInfoModal = ({ exercise, onClose }: any) => {
           )}
         </Carousel>
       </div>
-      {/* CONTENIDO TEXTUAL */}
       <div className="p-8">
         <Text size="xl" weight="black" variant="gradient" className="uppercase mb-4 text-center italic tracking-tighter leading-none">
           {exercise.nombre}
@@ -102,8 +100,11 @@ const EjercicioInfoModal = ({ exercise, onClose }: any) => {
 
 // --- MODAL PRINCIPAL ---
 const RutinaDetalle: React.FC<RutinaDetalleProps> = ({ rutina, onClose, onStart }) => {
+  const navigate = useNavigate(); // 🔹 2. Inicializar la función navigate
   const [selectedEx, setSelectedEx] = useState<any>(null);
-  const diffColor = rutina.dificultad === 'alta' ? 'bg-red-500' : rutina.dificultad === 'media' ? 'bg-orange-500' : 'bg-green-500';
+  
+  const diff = rutina.dificultad?.toLowerCase();
+  const diffColor = diff === 'alta' ? 'bg-red-500' : diff === 'media' ? 'bg-orange-500' : 'bg-green-500';
 
   return (
     <Modal 
@@ -111,7 +112,6 @@ const RutinaDetalle: React.FC<RutinaDetalleProps> = ({ rutina, onClose, onStart 
       onClose={onClose} 
       className="!p-0 !max-w-lg overflow-hidden flex flex-col"
     >
-      {/* HEADER CON DEGRADADO */}
       <div className="relative h-36 flex-shrink-0 bg-gradient-to-b from-purple-600/30 to-transparent flex items-end px-8 pb-6">
         <div className="w-full">
           <div className="flex items-center gap-2 mb-2">
@@ -128,7 +128,6 @@ const RutinaDetalle: React.FC<RutinaDetalleProps> = ({ rutina, onClose, onStart 
         </div>
       </div>
 
-      {/* LISTA DE EJERCICIOS */}
       <div className="flex-1 overflow-y-auto p-8 pt-2 no-scrollbar max-h-[50vh]">
         <p className="text-gray-500 text-[11px] leading-relaxed border-l-2 border-purple-500/30 pl-4 py-1 italic mb-8">
           {rutina.descripcion || "Protocolo de entrenamiento diseñado para hipertrofia y fuerza máxima."}
@@ -170,14 +169,17 @@ const RutinaDetalle: React.FC<RutinaDetalleProps> = ({ rutina, onClose, onStart 
         </div>
       </div>
 
-      {/* FOOTER ACCIÓN */}
       <div className="p-8 pt-4 bg-[#161925] border-t border-white/5">
         <Button 
           variant="primary" 
           size="lg"
           onClick={() => {
-            onStart(rutina); 
-            onClose();       
+            // 🔹 3. Usar navigate para cambiar de pantalla pasando los datos
+            navigate('/dashboard/sesion-activa', { state: { rutina } }); 
+            
+            // Opcional: Si quieres mantener onStart para alguna lógica extra en App.tsx
+            if (onStart) onStart(rutina); 
+            onClose();
           }}
           className="w-full !rounded-2xl !py-5 flex items-center justify-center gap-3 shadow-purple-500/20 shadow-xl"
         >
@@ -186,7 +188,6 @@ const RutinaDetalle: React.FC<RutinaDetalleProps> = ({ rutina, onClose, onStart 
         </Button>
       </div>
 
-      {/* SUB-MODAL */}
       {selectedEx && (
         <EjercicioInfoModal 
           exercise={selectedEx} 

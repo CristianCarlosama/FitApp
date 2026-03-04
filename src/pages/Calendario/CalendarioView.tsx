@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom"; // 🔹 IMPORTANTE
 import { 
   FaChevronLeft, FaCalendarAlt, FaChevronRight,
 } from "react-icons/fa";
@@ -11,11 +12,8 @@ import Button from "../../components/Buttons";
 import CardLayout from "../../components/CardLayout";
 import CalendarioInfo from "./modales/CalendarioInfo";
 
-interface CalendarioViewProps {
-  goBack: () => void;
-}
-
-const CalendarioView: React.FC<CalendarioViewProps> = ({ goBack }) => {
+const CalendarioView: React.FC = () => {
+  const navigate = useNavigate(); 
   const [currentDate, setCurrentDate] = useState(new Date()); 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedData, setSelectedData] = useState<any>(null);
@@ -30,8 +28,6 @@ const CalendarioView: React.FC<CalendarioViewProps> = ({ goBack }) => {
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   
-  // FIX LÓGICA DE DÍAS: 
-  // getDay() es Dom=0, Lun=1... Para que empiece en Lun:
   const firstDayOfMonth = new Date(year, month, 1).getDay();
   const startingDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
 
@@ -75,7 +71,7 @@ const CalendarioView: React.FC<CalendarioViewProps> = ({ goBack }) => {
       <header className="sticky top-0 z-40 bg-[#0f111a]/95 backdrop-blur-xl border-b border-white/5 p-4 md:p-6">
         <div className="max-w-[1400px] mx-auto flex flex-col gap-6">
           <div className="flex items-center justify-between">
-            <button onClick={goBack} className="group flex items-center gap-3 active:scale-95 transition-all w-fit">
+            <button onClick={() => navigate(-1)} className="group flex items-center gap-3 active:scale-95 transition-all w-fit">
               <FaChevronLeft className="text-purple-500" />
               <div className="flex flex-col items-start">
                 <Text size="2xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none italic">ARES</Text>
@@ -106,7 +102,6 @@ const CalendarioView: React.FC<CalendarioViewProps> = ({ goBack }) => {
           </div>
         </div>
 
-        {/* CONTENEDOR MÁS PEQUEÑO SOLO PARA EL CALENDARIO */}
         <div className="max-w-[600px] mx-auto">
           <CardLayout className="p-4 md:p-6 bg-black/40 border-white/5 shadow-2xl overflow-hidden relative rounded-3xl">
             {loading && <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] z-10 flex items-center justify-center" />}
@@ -160,7 +155,6 @@ const CalendarioView: React.FC<CalendarioViewProps> = ({ goBack }) => {
             </div>
           </CardLayout>
 
-          {/* Leyenda debajo del calendario centrado */}
           <div className="mt-4 flex items-center justify-center gap-6 opacity-50">
             <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-purple-500 rounded-full" />

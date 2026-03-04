@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // 🔹 Hook para navegación
 import { FaEdit, FaTrash, FaChevronLeft, FaDumbbell, FaPlus } from "react-icons/fa";
 import { getEjercicios, deleteEjercicio, createEjercicio, updateEjercicio } from "../../services/ejercicios";
 import { getMusculos } from "../../services/musculos"; 
@@ -11,12 +12,12 @@ import NotificationModal from "../../components/NotificationModal";
 import EjercicioForm from "../EjercicioDev/modales/EjerciciosFormCE";
 import type { NotificationType } from "../../components/NotificationModal";
 
-interface Props {
+interface EjerciciosCRUDProps {
   userRole: string | null;
-  goBack: () => void;
 }
 
-const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
+const EjerciciosCRUD: React.FC<EjerciciosCRUDProps> = ({ userRole }) => {
+  const navigate = useNavigate();
   const [ejercicios, setEjercicios] = useState<any[]>([]);
   const [musculosDB, setMusculosDB] = useState<any[]>([]); 
   const [filtro, setFiltro] = useState<string | null>(null);
@@ -36,8 +37,11 @@ const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
       const [ejData, musData] = await Promise.all([getEjercicios(), getMusculos()]);
       setEjercicios(ejData);
       setMusculosDB(musData);
-    } catch (error) { console.error(error); } 
-    finally { setLoading(false); }
+    } catch (error) { 
+      console.error("Error cargando ejercicios:", error); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   useEffect(() => { loadData(); }, [userRole]);
@@ -62,9 +66,13 @@ const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
       isOpen: true, type: "delete", title: "¿Eliminar Ejercicio?",
       message: `Estas por borrar "${ej.nombre}".`,
       onConfirm: async () => {
-        await deleteEjercicio(ej.id);
-        loadData();
-        closeNoti();
+        try {
+          await deleteEjercicio(ej.id);
+          loadData();
+          closeNoti();
+        } catch (error) {
+          setNoti({ isOpen: true, type: "error", title: "Error", message: "No se pudo eliminar." });
+        }
       }
     });
   };
@@ -86,11 +94,11 @@ const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
   return (
     <div className="min-h-screen bg-[#0f111a] text-white flex flex-col overflow-x-hidden">
       
-      {/* HEADER */}
+      {/* HEADER CONECTADO AL ROUTER */}
       <header className="sticky top-0 z-40 bg-[#0f111a]/95 backdrop-blur-xl border-b border-white/5 p-6">
         <div className="max-w-[1400px] mx-auto w-full">
           <div className="flex justify-between items-center mb-8">
-            <button onClick={goBack} className="group flex items-center gap-3 active:scale-95 transition-all text-left">
+            <button onClick={() => navigate(-1)} className="group flex items-center gap-3 active:scale-95 transition-all text-left">
               <FaChevronLeft className="text-purple-500 text-xl group-hover:-translate-x-1 transition-transform" />
               <div>
                 <Text size="2xl" weight="black" variant="gradient" className="uppercase italic leading-none">Ejercicios</Text>
@@ -108,7 +116,6 @@ const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
             </Button>
           </div>
 
-          {/* Uso de tu nuevo CAROUSEL reutilizable */}
           <Carousel>
             <Button 
               variant={!filtro ? "primary" : "secondary"} 
@@ -133,13 +140,12 @@ const EjerciciosCRUD: React.FC<Props> = ({ userRole, goBack }) => {
         </div>
       </header>
 
-      {/* GRID */}
+      {/* GRID DE EJERCICIOS */}
       <main className="flex-1 p-6 max-w-[1400px] mx-auto w-full pb-32">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {filtered.map(ej => (
             <div key={ej.id} className="group bg-[#161925] rounded-[2.5rem] border border-white/5 overflow-hidden hover:border-purple-500/50 transition-all duration-500 flex flex-col shadow-2xl relative">
               
-              {/* Controles flotantes con Glass buttons */}
               <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 translate-x-16 group-hover:translate-x-0 transition-transform duration-300">
                 <Button 
                   variant="glass" 

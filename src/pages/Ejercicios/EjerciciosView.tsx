@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // 🔹 IMPORTANTE
 import { FaDumbbell, FaChevronLeft, FaFire, FaSearch } from "react-icons/fa";
 
 // --- SERVICIOS ---
@@ -10,7 +11,7 @@ import Text from "../../components/Texts";
 import Button from "../../components/Buttons";
 import CardLayout from "../../components/CardLayout";
 import SearchInput from "../../components/SearchInput";
-import Carousel from "../../components/Carousel"; // <--- Usamos tu Carousel global
+import Carousel from "../../components/Carousel"; 
 import EjercicioDetalleModal from "./modales/EjercicioDetalle";
 
 // --- INTERFACES ---
@@ -31,7 +32,8 @@ export interface Ejercicio {
   foto_3?: string;
 }
 
-const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
+const EjerciciosView: React.FC = () => {
+  const navigate = useNavigate();
   const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);
   const [musculosDB, setMusculosDB] = useState<{id: number, nombre: string}[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,18 +91,15 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-[#0f111a]">
-      {/* HEADER DINÁMICO */}
-      <header className="sticky top-0 z-40 bg-[#0f111a]/80 backdrop-blur-2xl border-b border-white/5 p-4 md:p-6">
-        <div className="max-w-[1400px] mx-auto space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <button onClick={goBack} className="group flex items-center gap-4 active:scale-95 transition-all w-fit">
-              <div className="bg-white/5 p-3 rounded-2xl group-hover:bg-purple-600 transition-colors">
-                <FaChevronLeft className="text-white text-sm" />
-              </div>
-              <div className="flex flex-col items-start">
-                <Text size="2xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none italic">ARES</Text>
-                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase">Ejercicios / {selectedClase || "Explorar"}
-                </Text>
+      {/* HEADER DINÁMICO CONECTADO AL ROUTER */}
+      <header className="sticky top-0 z-40 bg-[#0f111a]/95 backdrop-blur-xl border-b border-white/5 p-6">
+        <div className="max-w-[1400px] mx-auto w-full">
+          <div className="flex justify-between items-center mb-8">
+            <button onClick={() => navigate(-1)} className="group flex items-center gap-3 active:scale-95 transition-all text-left">
+              <FaChevronLeft className="text-purple-500 text-xl group-hover:-translate-x-1 transition-transform" />
+                <div className="flex flex-col items-start">
+                <Text size="2xl" weight="black" variant="gradient" className="uppercase italic leading-none">ARES</Text>
+                <Text size="xs" className="text-gray-500 font-bold uppercase tracking-widest">Ejercicios / {selectedClase || "Explorar"}</Text>
               </div>
             </button>
 
@@ -113,7 +112,6 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
             </div>
           </div>
 
-          {/* FILTROS CON TU CAROUSEL REUTILIZABLE */}
           <Carousel>
             <Button
               variant={selectedClase === null ? "primary" : "glass"}
@@ -156,9 +154,8 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
               <CardLayout 
                 key={e.id} 
                 onClick={() => setSelectedExercise(e)} 
-                className="group flex flex-col h-[400px] !p-0 overflow-hidden border-white/5 hover:border-purple-500/50 transition-all duration-500"
+                className="group flex flex-col h-[400px] !p-0 overflow-hidden border-white/5 hover:border-purple-500/50 transition-all duration-500 cursor-pointer"
               >
-                {/* Imagen con Overlay */}
                 <div className="relative h-48 bg-gray-900 overflow-hidden shrink-0">
                   {e.foto_1 ? (
                     <img 
@@ -178,7 +175,7 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                     </span>
                   </div>
                 </div>
-                {/* Info de la Card */}
+
                 <div className="p-6 flex flex-col flex-1 justify-between bg-[#161925]">
                   <div>
                     <Text size="lg" weight="black" className="uppercase tracking-tight mb-2 group-hover:text-purple-400 transition-colors">
@@ -188,7 +185,7 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
                       {e.descripcion || "Optimiza tu biomecánica con este movimiento técnico."}
                     </Text>
                   </div>
-                  {/* Badges de Músculos */}
+
                   <div className="mt-4 flex flex-wrap gap-2">
                     <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg border border-white/5">
                       <FaFire size={8} className="text-purple-500" />
@@ -217,7 +214,6 @@ const EjerciciosView: React.FC<{ goBack: () => void }> = ({ goBack }) => {
         </div>
       </main>
 
-      {/* MODAL DE DETALLE */}
       {selectedExercise && (
         <EjercicioDetalleModal 
           exercise={selectedExercise} 

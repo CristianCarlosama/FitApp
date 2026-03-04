@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom"; // 🔹 Hooks necesarios
 import { 
   FaTrash, FaCheck, FaDumbbell, FaTimes, FaClock, FaPlus, FaSearch
 } from "react-icons/fa";
@@ -18,12 +19,18 @@ interface Serie {
 }
 
 interface Props {
-  rutina: any; 
-  onClose: () => void;
-  onFinish: (data: any) => void;
+  rutina?: any; 
+  onClose?: () => void;
+  onFinish?: (data: any) => void;
 }
 
-const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
+const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClose, onFinish: propOnFinish }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // 🔹 PRIORIDAD: Data de Props o Data del Router State
+  const rutina = propRutina || location.state?.rutina;
+  
   const [series, setSeries] = useState<Serie[]>([]);
   const [ejerciciosExtras, setEjerciciosExtras] = useState<any[]>([]);
   const [segundos, setSegundos] = useState(0);
@@ -42,8 +49,16 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
     onConfirm: undefined as (() => void) | undefined,
   });
 
+  // 🛡️ Seguridad: Si no hay rutina (por ejemplo, recarga de página), vuelve a rutinas
   useEffect(() => {
-    if (rutina?.ejercicios) {
+    if (!rutina) {
+      navigate("/dashboard/rutinas"); 
+    }
+  }, [rutina, navigate]);
+
+  // Lógica original de inicialización de series
+  useEffect(() => {
+    if (rutina?.ejercicios && series.length === 0) {
       const seriesIniciales: Serie[] = [];
       rutina.ejercicios.forEach((ej: any) => {
         const numSeries = parseInt(ej.pivot?.series || ej.series_sugeridas || ej.series || 1);
@@ -102,7 +117,8 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
       title: "¿Abandonar sesión?",
       message: "Si sales ahora, perderás todo el progreso de este entrenamiento. ¿Estás seguro?",
       onConfirm: () => {
-        onClose();
+        if (propOnClose) propOnClose();
+        else navigate(-1);
         setModal(prev => ({ ...prev, isOpen: false }));
       }
     });
@@ -145,7 +161,7 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
     setSeries(prev => prev.filter(s => !(s.ejercicio_id === ejercicioId && s.numero_serie === numSerie)));
   };
 
-  const handleFinalizarEntrenamiento = () => {
+  const handleFinalizarEntrenamiento = async () => {
     const seriesParaGuardar = series.filter(s => s.completada);
     if (seriesParaGuardar.length === 0) {
       setModal({
@@ -156,7 +172,7 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
       return;
     }
 
-    onFinish({
+    const dataFinal = {
       rutina_id: rutina.id,
       fecha_inicio: fechaInicio,
       fecha_fin: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -167,8 +183,29 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
         reps: Number(s.reps),
         numero_serie: s.numero_serie
       }))
-    });
+    };
+
+    if (propOnFinish) {
+      propOnFinish(dataFinal);
+    } else {
+      // 🔹 Lógica de guardado si se accede por ruta directamente
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/entrenamientos`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify(dataFinal)
+        });
+        if (response.ok) navigate('/'); // O a donde prefieras
+      } catch (e) {
+        console.error("Error al guardar:", e);
+      }
+    }
   };
+
+  if (!rutina) return null;
 
   const todosLosEjercicios = [...(rutina.ejercicios || []), ...ejerciciosExtras];
 
@@ -223,9 +260,7 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
                 <Text weight="black" size="sm" className="uppercase italic tracking-tight">{ej.nombre}</Text>
               </div>
               <Button 
-                variant="glass" 
-                size="sm" 
-                className="!p-2 rounded-full w-8 h-8"
+                variant="glass" size="sm" className="!p-2 rounded-full w-8 h-8"
                 onClick={() => {
                   const numSeriesActuales = series.filter(s => s.ejercicio_id === ej.id).length;
                   setSeries(prev => [...prev, {
@@ -239,42 +274,15 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
             </div>
 
             <div className="p-5 pt-0 space-y-3">
-              <div className="grid grid-cols-5 gap-2 px-2">
-                <Text size="xs" className="text-gray-600 font-black uppercase text-center">Serie</Text>
-                <Text size="xs" className="text-gray-600 font-black uppercase text-center">Peso</Text>
-                <Text size="xs" className="text-gray-600 font-black uppercase text-center">Reps</Text>
-                <Text size="xs" className="text-gray-600 font-black uppercase text-center">Check</Text>
-                <div />
-              </div>
-
               {series.filter(s => s.ejercicio_id === ej.id).map((serie, idx) => (
                 <div key={`${ej.id}-${idx}`} className={`grid grid-cols-5 gap-2 items-center p-2 rounded-2xl transition-all ${serie.completada ? 'bg-green-500/10 border border-green-500/20' : 'bg-white/[0.02] border border-transparent'}`}>
-                  <div className="h-11 flex items-center justify-center rounded-xl bg-black/20 text-xs font-black text-gray-500">
-                    {serie.numero_serie}
-                  </div>
-                  
-                  <input 
-                    type="number" placeholder="0"
-                    className="bg-[#0f111a] border border-white/5 rounded-xl h-11 text-center text-sm font-bold focus:border-purple-500 outline-none transition-all" 
-                    onChange={(e) => actualizarDato(ej.id, serie.numero_serie, 'peso', e.target.value)} 
-                  />
-                  
-                  <input 
-                    type="number" defaultValue={serie.reps}
-                    className="bg-[#0f111a] border border-white/5 rounded-xl h-11 text-center text-sm font-bold focus:border-purple-500 outline-none transition-all" 
-                    onChange={(e) => actualizarDato(ej.id, serie.numero_serie, 'reps', e.target.value)} 
-                  />
-
-                  <button 
-                    onClick={() => toggleCompletarSerie(ej.id, serie.numero_serie, ej.nombre, ej)}
-                    className={`h-11 rounded-xl flex items-center justify-center transition-all ${serie.completada ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' : 'bg-white/5 text-gray-600 hover:bg-white/10'}`}
-                  >
+                  <div className="h-11 flex items-center justify-center rounded-xl bg-black/20 text-xs font-black text-gray-500">{serie.numero_serie}</div>
+                  <input type="number" placeholder="0" className="bg-[#0f111a] border border-white/5 rounded-xl h-11 text-center text-sm font-bold outline-none" onChange={(e) => actualizarDato(ej.id, serie.numero_serie, 'peso', e.target.value)} />
+                  <input type="number" defaultValue={serie.reps} className="bg-[#0f111a] border border-white/5 rounded-xl h-11 text-center text-sm font-bold outline-none" onChange={(e) => actualizarDato(ej.id, serie.numero_serie, 'reps', e.target.value)} />
+                  <button onClick={() => toggleCompletarSerie(ej.id, serie.numero_serie, ej.nombre, ej)} className={`h-11 rounded-xl flex items-center justify-center transition-all ${serie.completada ? 'bg-green-500 text-white' : 'bg-white/5 text-gray-600'}`}>
                     <FaCheck size={14} />
                   </button>
-                  <button 
-                    onClick={() => eliminarSerie(ej.id, serie.numero_serie)}
-                    className="flex justify-center text-red-900/40 hover:text-red-500 transition-colors"
-                  >
+                  <button onClick={() => eliminarSerie(ej.id, serie.numero_serie)} className="flex justify-center text-red-900/40 hover:text-red-500 transition-colors">
                     <FaTrash size={14} />
                   </button>
                 </div>
@@ -282,11 +290,7 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
             </div>
           </section>
         ))}
-        <Button 
-          variant="outline" 
-          className="w-full !py-8 !rounded-[2.5rem] flex-col gap-3 border-dashed border-2 opacity-60 hover:opacity-100"
-          onClick={() => setShowSelector(true)}
-        >
+        <Button variant="outline" className="w-full !py-8 !rounded-[2.5rem] flex-col gap-3 border-dashed opacity-60 hover:opacity-100" onClick={() => setShowSelector(true)}>
           <FaSearch size={18} className="text-purple-500" />
           <Text size="xs" weight="black" className="uppercase tracking-widest">Añadir ejercicio extra</Text>
         </Button>
@@ -294,37 +298,14 @@ const SesionActiva: React.FC<Props> = ({ rutina, onClose, onFinish }) => {
 
       <footer className="p-2 bg-[#0f111a]/80 backdrop-blur-2xl fixed bottom-0 w-full border-t border-white/5 z-40">
         <div className="max-w-md mx-auto space-y-4">
-          <div className="flex justify-center items-center gap-2 opacity-50">
-            <FaCheck className="text-green-500" size={10} />
-            <Text size="xs" className="italic font-medium">Solo se guardarán las series marcadas</Text>
-          </div>
-          <Button 
-            variant="primary" 
-            size="lg" 
-            className="w-full !py-5 !rounded-[2rem] uppercase font-black"
-            onClick={handleFinalizarEntrenamiento}
-          >
+          <Button variant="primary" size="lg" className="w-full !py-5 !rounded-[2rem] uppercase font-black" onClick={handleFinalizarEntrenamiento}>
             Finalizar Entrenamiento
           </Button>
         </div>
       </footer>
 
-      {showSelector && (
-        <SelectorEjercicios 
-          isOpen={showSelector}
-          onClose={() => setShowSelector(false)}
-          onSelect={handleAddEjercicioExtra}
-        />
-      )}
-
-      <NotificationModal 
-        isOpen={modal.isOpen} 
-        type={modal.type} 
-        title={modal.title} 
-        message={modal.message} 
-        onConfirm={modal.onConfirm} 
-        onClose={() => setModal({...modal, isOpen: false})} 
-      />
+      {showSelector && <SelectorEjercicios isOpen={showSelector} onClose={() => setShowSelector(false)} onSelect={handleAddEjercicioExtra} />}
+      <NotificationModal isOpen={modal.isOpen} type={modal.type} title={modal.title} message={modal.message} onConfirm={modal.onConfirm} onClose={() => setModal({...modal, isOpen: false})} />
     </div>
   );
 };

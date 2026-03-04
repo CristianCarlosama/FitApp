@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom"; // 🔹 IMPORTANTE
 import { 
   FaPlay, FaStop, FaHistory, 
   FaUndo, FaClock, FaChevronLeft 
@@ -13,11 +14,8 @@ interface Lap {
   time: number;
 }
 
-interface CronometroViewProps {
-  goBack: () => void;
-}
-
-const CronometroView: React.FC<CronometroViewProps> = ({ goBack }) => {
+const CronometroView: React.FC = () => {
+  const navigate = useNavigate(); // 🔹 Hook de navegación
   const [tiempo, setTiempo] = useState<number>(0);
   const [estaCorriendo, setEstaCorriendo] = useState<boolean>(false);
   const [vueltas, setVueltas] = useState<Lap[]>([]);
@@ -72,10 +70,10 @@ const CronometroView: React.FC<CronometroViewProps> = ({ goBack }) => {
   return (
     <div className="flex flex-col h-screen bg-[#0f111a] font-sans">
       
-      {/* HEADER IDÉNTICO AL TEMPORIZADOR */}
+      {/* HEADER CONECTADO AL ROUTER */}
       <header className="p-6 bg-[#0f111a] border-b border-white/5">
         <div className="flex items-center justify-between max-w-[1400px] mx-auto">
-          <button onClick={goBack} className="flex items-center gap-3 active:scale-95 transition-all">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-3 active:scale-95 transition-all">
             <FaChevronLeft className="text-purple-500" />
             <div className="flex flex-col items-start">
               <Text size="xl" weight="black" variant="gradient" className="uppercase tracking-tighter leading-none italic">ARES</Text>
@@ -97,18 +95,15 @@ const CronometroView: React.FC<CronometroViewProps> = ({ goBack }) => {
             </Text>
         </div>
 
-        {/* CÍRCULO PRINCIPAL - TAMAÑO CLONADO */}
+        {/* CÍRCULO PRINCIPAL */}
         <div className="relative flex items-center justify-center w-64 h-64 md:w-72 md:h-72 my-2">
-          {/* Glow dinámico idéntico */}
           <div className={`absolute inset-0 rounded-full blur-[80px] transition-all duration-1000 ${
             estaCorriendo ? 'bg-indigo-600/20' : 'bg-purple-600/5'
           }`}></div>
 
           <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 300 300">
-            {/* Fondo del anillo */}
             <circle cx="150" cy="150" r={radio} fill="transparent" stroke="#161926" strokeWidth="8" />
             
-            {/* Progreso del anillo */}
             <circle
               cx="150" cy="150" r={radio} 
               fill="transparent"
@@ -129,12 +124,10 @@ const CronometroView: React.FC<CronometroViewProps> = ({ goBack }) => {
           </svg>
 
           <div className="relative z-10 flex flex-col items-center">
-            {/* NÚMEROS - TAMAÑO CLONADO (6xl/7xl) */}
             <span className="text-6xl md:text-7xl font-black tracking-tighter text-white tabular-nums drop-shadow-2xl">
               {formatearTiempo(tiempo)}
             </span>
             
-            {/* Badge de estado */}
             <div className="flex items-center gap-2 mt-2 px-3 py-1 rounded-full border bg-purple-500/10 border-purple-500/20">
                 <FaClock size={8} className="text-purple-400" />
                 <Text size="xs" weight="black" className="uppercase italic text-[10px] text-purple-200">
@@ -144,7 +137,7 @@ const CronometroView: React.FC<CronometroViewProps> = ({ goBack }) => {
           </div>
         </div>
 
-        {/* CONTROLES ESTILO TEMPORIZADOR */}
+        {/* CONTROLES */}
         <div className="flex items-center gap-8 z-50">
           <Button 
             variant="glass" 
