@@ -20,28 +20,28 @@ const Carousel: React.FC<CarouselProps> = ({ children, className = "" }) => {
 
   return (
     <div className={`relative w-full group ${className}`}>
-      {/* Botón Izquierdo */}
-      <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center bg-gradient-to-r from-[#0f111a] via-[#0f111a]/50 to-transparent pr-10">
+      <div className="absolute left-0 top-0 bottom-0 z-20 flex items-center bg-gradient-to-r from-[#0f111a] via-[#0f111a]/20 to-transparent pr-8 pointer-events-none">
         <Button 
           variant="glass" 
           onClick={() => scroll("left")} 
-          className="!p-2.5 !rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+          className="!p-2.5 !rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto ml-1"
         >
           <FaChevronLeft size={12} />
         </Button>
       </div>
+
       <div 
         ref={scrollRef} 
-        className="flex overflow-x-auto gap-3 pb-4 no-scrollbar scroll-smooth px-2"
+        className="flex overflow-x-auto gap-3 pb-2 no-scrollbar scroll-smooth px-12 items-center"
       >
         {children}
       </div>
-      {/* Botón Derecho */}
-      <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center bg-gradient-to-l from-[#0f111a] via-[#0f111a]/50 to-transparent pl-10">
+
+      <div className="absolute right-0 top-0 bottom-0 z-20 flex items-center bg-gradient-to-l from-[#0f111a] via-[#0f111a]/20 to-transparent pl-8 pointer-events-none">
         <Button 
           variant="glass" 
           onClick={() => scroll("right")} 
-          className="!p-2.5 !rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+          className="!p-2.5 !rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto mr-1"
         >
           <FaChevronRight size={12} />
         </Button>

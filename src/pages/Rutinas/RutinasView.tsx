@@ -1,19 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // 🔹 Navegación fluida
-import { 
-  FaChevronLeft, FaStar, FaClock, 
+import { FaStar, FaClock, 
   FaDumbbell, FaGlobeAmericas, FaLock, FaEdit, FaTrash, FaPlus 
 } from "react-icons/fa";
 
 // --- COMPONENTES ---
 import Text from "../../components/Texts";
 import Button from "../../components/Buttons";
-import Carousel from "../../components/Carousel";
-import SearchInput from "../../components/SearchInput";
 import CardLayout from "../../components/CardLayout";
 import NotificationModal from "../../components/NotificationModal";
 import RutinaForm from "./modales/RutinasForm";
 import RutinaDetalle from "./modales/RutinaInfo"; 
+import ViewHeader from "../../components/Header"
 
 // --- SERVICIOS ---
 import { getRutinas, deleteRutina } from "../../services/rutinas";
@@ -46,7 +43,6 @@ interface RutinasViewProps {
 }
 
 const RutinasView: React.FC<RutinasViewProps> = ({ onStartWorkout }) => {
-  const navigate = useNavigate();
   const [rutinas, setRutinas] = useState<Rutina[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -119,50 +115,21 @@ const RutinasView: React.FC<RutinasViewProps> = ({ onStartWorkout }) => {
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-[#0f111a]">
-      {/* HEADER */}
-      <header className="sticky top-0 z-40 bg-[#0f111a]/95 backdrop-blur-xl border-b border-white/5 p-6">
-        <div className="max-w-[1400px] mx-auto w-full">
-          <div className="flex justify-between items-center mb-8">
-            <button onClick={() => navigate(-1)} className="group flex items-center gap-3 active:scale-95 transition-all text-left">
-              <FaChevronLeft className="text-purple-500 text-xl group-hover:-translate-x-1 transition-transform" />
-                <div className="flex flex-col items-start">
-                <Text size="2xl" weight="black" variant="gradient" className="uppercase italic leading-none">ARES</Text>
-                <Text size="xs" className="text-gray-500 font-bold tracking-widest uppercase italic">Rutinas / {filtroActivo || "Explorar"}</Text>
-              </div>
-            </button>
-            <div className="w-full md:w-96">
-                <SearchInput value={searchTerm} onChange={setSearchTerm} placeholder="Buscar por nombre o descripción..." />
-            </div>
-          </div>
-
-          <Carousel className="w-full">
-            <Button 
-              variant={filtroActivo === null ? "primary" : "glass"} 
-              size="sm" 
-              onClick={() => setFiltroActivo(null)}
-              className="flex-shrink-0 !rounded-full !px-8"
-            >
-              TODOS
-            </Button>
-            {categoriasFiltro.map(c => (
-              <Button 
-                key={c}
-                variant={filtroActivo === c ? "primary" : "glass"} 
-                size="sm" 
-                onClick={() => setFiltroActivo(c)}
-                className="flex-shrink-0 !rounded-full !px-8"
-              >
-                {c}
-              </Button>
-            ))}
-          </Carousel>
-        </div>
-      </header>
+      <ViewHeader 
+        title="ARES"
+        subtitle={`Rutinas / ${filtroActivo || "Todas"}`}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Buscar por nombre o descripción..."
+        activeFilter={filtroActivo}
+        filters={categoriasFiltro}
+        onFilterClick={setFiltroActivo}
+      />
 
       {/* CONTENIDO PRINCIPAL */}
-      <main className="p-4 md:p-8 max-w-[1400px] mx-auto w-full flex-1">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
-          <div className="flex flex-col">
+      <main className="flex-1 p-6 max-w-[1400px] mx-auto w-full pb-32">
+        <div className="flex justify-between items-end mb-10">
+          <div>
             <Text size="3xl" weight="black" className="uppercase leading-none italic tracking-tighter">BIBLIOTECA</Text>
             <Text size="xs" className="text-gray-500 font-bold uppercase tracking-widest mt-2">
               {filteredRutinas.length} Planes de entrenamiento listos

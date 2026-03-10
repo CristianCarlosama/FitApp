@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // 🔹 IMPORTANTE
-import { FaDumbbell, FaChevronLeft, FaFire, FaSearch } from "react-icons/fa";
+import { FaDumbbell, FaFire, FaSearch } from "react-icons/fa";
 
 // --- SERVICIOS ---
 import { getEjercicios } from "../../services/ejercicios";
@@ -10,11 +9,8 @@ import { getMusculos } from "../../services/musculos";
 import Text from "../../components/Texts";
 import Button from "../../components/Buttons";
 import CardLayout from "../../components/CardLayout";
-import SearchInput from "../../components/SearchInput";
-import Carousel from "../../components/Carousel"; 
 import EjercicioDetalleModal from "./modales/EjercicioDetalle";
-
-// --- INTERFACES ---
+import ViewHeader from "../../components/Header"; 
 export interface MusculoImpacto {
   nombre: string;
   intensidad: "Alto" | "Medio" | "Bajo";
@@ -33,7 +29,6 @@ export interface Ejercicio {
 }
 
 const EjerciciosView: React.FC = () => {
-  const navigate = useNavigate();
   const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);
   const [musculosDB, setMusculosDB] = useState<{id: number, nombre: string}[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,51 +86,17 @@ const EjerciciosView: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-[#0f111a]">
-      {/* HEADER DINÁMICO CONECTADO AL ROUTER */}
-      <header className="sticky top-0 z-40 bg-[#0f111a]/95 backdrop-blur-xl border-b border-white/5 p-6">
-        <div className="max-w-[1400px] mx-auto w-full">
-          <div className="flex justify-between items-center mb-8">
-            <button onClick={() => navigate(-1)} className="group flex items-center gap-3 active:scale-95 transition-all text-left">
-              <FaChevronLeft className="text-purple-500 text-xl group-hover:-translate-x-1 transition-transform" />
-                <div className="flex flex-col items-start">
-                <Text size="2xl" weight="black" variant="gradient" className="uppercase italic leading-none">ARES</Text>
-                <Text size="xs" className="text-gray-500 font-bold uppercase tracking-widest">Ejercicios / {selectedClase || "Explorar"}</Text>
-              </div>
-            </button>
-
-            <div className="w-full md:w-96">
-              <SearchInput 
-                value={searchTerm} 
-                onChange={setSearchTerm} 
-                placeholder="Buscar por nombre..." 
-              />
-            </div>
-          </div>
-
-          <Carousel>
-            <Button
-              variant={selectedClase === null ? "primary" : "glass"}
-              size="sm"
-              onClick={() => setSelectedClase(null)}
-              className="flex-shrink-0 !rounded-full !px-6"
-            >
-              Todos
-            </Button>
-            
-            {musculosDB.map((m) => (
-              <Button
-                key={m.id}
-                variant={selectedClase === m.nombre ? "primary" : "glass"}
-                size="sm"
-                onClick={() => setSelectedClase(m.nombre)}
-                className="flex-shrink-0 !rounded-full !px-6"
-              >
-                {m.nombre}
-              </Button>
-            ))}
-          </Carousel>
-        </div>
-      </header>
+      {/* HEADER REUTILIZABLE */}
+      <ViewHeader 
+        title="ARES"
+        subtitle={`Ejercicios / ${selectedClase || "Explorar"}`}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Buscar por nombre..."
+        activeFilter={selectedClase}
+        filters={musculosDB.map(m => m.nombre)} 
+        onFilterClick={setSelectedClase}
+      />
 
       {/* MAIN CONTENT */}
       <main className="p-4 md:p-8 max-w-[1400px] mx-auto w-full flex-1">
@@ -156,6 +117,7 @@ const EjerciciosView: React.FC = () => {
                 onClick={() => setSelectedExercise(e)} 
                 className="group flex flex-col h-[400px] !p-0 overflow-hidden border-white/5 hover:border-purple-500/50 transition-all duration-500 cursor-pointer"
               >
+                {/* Imagen del ejercicio */}
                 <div className="relative h-48 bg-gray-900 overflow-hidden shrink-0">
                   {e.foto_1 ? (
                     <img 
@@ -176,6 +138,7 @@ const EjerciciosView: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Info del ejercicio */}
                 <div className="p-6 flex flex-col flex-1 justify-between bg-[#161925]">
                   <div>
                     <Text size="lg" weight="black" className="uppercase tracking-tight mb-2 group-hover:text-purple-400 transition-colors">

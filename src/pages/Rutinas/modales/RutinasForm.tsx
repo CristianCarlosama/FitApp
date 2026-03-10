@@ -184,6 +184,7 @@ const RutinaForm: React.FC<Props> = ({ rutina, onClose, onSuccess }) => {
                 <Text size="sm" weight="black" className="uppercase text-gray-400">Ejercicios</Text>
                 {esMia && (
                   <Button 
+                    type="button"
                     variant="primary" 
                     className="!p-2 !rounded-xl" 
                     onClick={() => setOpenSelector(true)}
