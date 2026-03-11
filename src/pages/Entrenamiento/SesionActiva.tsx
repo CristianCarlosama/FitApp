@@ -274,12 +274,30 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
           },
           body: JSON.stringify(dataFinal)
         });
+
         if (response.ok) {
-          finalizarLimpiandoStorage();
-          navigate('/');
+          setModal({
+            isOpen: true,
+            type: "success",
+            title: "¡Entrenamiento Guardado!",
+            message: "Tu progreso se ha registrado correctamente. ¡Buen trabajo!",
+            onConfirm: () => {
+              finalizarLimpiandoStorage();
+              navigate('/');
+            }
+          });
+        } else {
+          throw new Error("Error en el servidor");
         }
       } catch (e) {
         console.error("Error al guardar:", e);
+        setModal({
+          isOpen: true,
+          type: "error",
+          title: "Error",
+          message: "No se pudo guardar el entrenamiento. Revisa tu conexión.",
+          onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
+        });
       }
     }
   };
