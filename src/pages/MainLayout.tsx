@@ -8,7 +8,6 @@ import {
 import Text from '../components/Texts';
 import Button from '../components/Buttons';
 
-// Importamos los modales para poder abrirlos desde la sidebar
 import RegisterModal from '../pages/modales/RegisterModal';
 import LoginModal from '../pages/modales/LoginModal';
 
@@ -16,10 +15,10 @@ const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
 
-  // Estados para controlar los modales
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
 
@@ -34,18 +33,32 @@ const MainLayout: React.FC = () => {
           const payload = JSON.parse(atob(token.split(".")[1]));
           setUserRole(payload.role);
         } catch (e) {
-          console.error("Error con el token", e);
+          setIsAuthenticated(false);
         }
+      } else {
+        setIsAuthenticated(false);
+        setUserRole(null);
       }
     };
+
     checkAuth();
-  }, [location]); // Re-verificar cuando cambie la ruta por si acaso
+
+    window.addEventListener('storage', checkAuth);
+    
+    window.addEventListener('auth-change', checkAuth);
+
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('auth-change', checkAuth);
+    };
+  }, [location]);
 
   const handleLogout = () => {
     localStorage.clear();
     setIsAuthenticated(false);
     setUserRole(null);
     navigate("/");
+    window.dispatchEvent(new Event('auth-change'));
   };
 
   return (
@@ -81,10 +94,13 @@ const MainLayout: React.FC = () => {
             )}
           </nav>
 
-          {/* SECCIÓN DE AUTENTICACIÓN CORREGIDA */}
+          {/* SECCIÓN DE AUTENTICACIÓN */}
           <div className="mt-auto pt-6 border-t border-white/5 space-y-3">
             {isAuthenticated ? (
-              <button onClick={handleLogout} className="flex items-center gap-3 text-red-400 hover:bg-red-500/10 w-full p-3 rounded-xl transition-all duration-300 group">
+              <button 
+                onClick={handleLogout} 
+                className="flex items-center gap-3 text-red-400 hover:bg-red-500/10 w-full p-3 rounded-xl transition-all duration-300 group"
+              >
                 <FaSignOutAlt className="group-hover:translate-x-1 transition-transform" /> 
                 <span className="font-medium">Cerrar Sesión</span>
               </button>
@@ -92,14 +108,12 @@ const MainLayout: React.FC = () => {
               <div className="flex flex-col gap-3">
                 <Button 
                   variant="primary" 
-                  className="w-full !rounded-xl shadow-lg shadow-purple-600/20" 
                   onClick={() => setShowLogin(true)}
                 >
                   Entrar
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full !rounded-xl !bg-transparent !border-white/10 hover:!bg-white/5" 
                   onClick={() => setShowRegister(true)}
                 >
                   Registrarse
@@ -132,7 +146,11 @@ const MainLayout: React.FC = () => {
         <Text size="lg" weight="bold" className="mb-6 text-green-400 uppercase tracking-widest italic">Recomendados</Text>
         <div className="space-y-6">
           <div className="rounded-2xl overflow-hidden aspect-video bg-gray-800 border border-white/5 relative group shrink-0 shadow-2xl">
-            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400" className="opacity-50 group-hover:scale-110 transition duration-500 w-full h-full object-cover" alt="Suplementos" />
+            <img 
+              src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400" 
+              className="opacity-50 group-hover:scale-110 transition duration-500 w-full h-full object-cover" 
+              alt="Suplementos" 
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 p-4 flex flex-col justify-end">
               <span className="text-xs font-black text-white uppercase leading-none">Suplementos 20% OFF</span>
               <span className="text-[10px] text-green-400 font-bold mt-1">Código: ARES2026</span>

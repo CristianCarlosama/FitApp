@@ -8,9 +8,34 @@ import TemporizadorView from './pages/Temporizador/TemporizadorView';
 import CalendarioView from './pages/Calendario/CalendarioView';
 import CRUDEjercicios from './pages/EjercicioDev/CRUDEjercicios';
 import SesionActiva from './pages/Entrenamiento/SesionActiva';
+import { useEffect } from 'react';
 
 const AppContent = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    const resetTimer = () => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(handleAutoLogout, 120 * 60 * 1000);
+    };
+
+    const handleAutoLogout = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/'; 
+    };
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => document.addEventListener(event, resetTimer));
+
+    resetTimer(); 
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+      events.forEach(event => document.removeEventListener(event, resetTimer));
+    };
+  }, []);
 
   const handleStartWorkout = (rutina: any) => {
     navigate('/entrenamientos', { state: { rutina } }); 
