@@ -1,5 +1,6 @@
 import React from "react";
 import { FaDumbbell, FaFire, FaPlay } from "react-icons/fa";
+import { useNavigate } from "react-router-dom"; // Importamos el hook
 
 import Text from "../../../components/Texts";
 import Button from "../../../components/Buttons";
@@ -13,10 +14,25 @@ interface Props {
 }
 
 const EjercicioDetalleModal: React.FC<Props> = ({ exercise, onClose }) => {
+  const navigate = useNavigate();
 
   const getImageUrl = (url: string | null) => {
     if (!url) return "";
     return url.startsWith('http') ? url : `${import.meta.env.VITE_STORAGE_URL}/${url}`;
+  };
+
+  // Lógica para navegar a rutinas con el filtro
+  const handleConRutina = () => {
+    navigate("/rutinas", { 
+      state: { filtroCategoria: exercise.clase } 
+    });
+    onClose();
+  };
+
+  const handleSinRutina = () => {
+    // Por ahora solo cerramos o podrías mandarlo a /entrenamientos directo
+    console.log("Entrenar sin rutina previa");
+    onClose();
   };
 
   const mediaItems = [
@@ -57,7 +73,7 @@ const EjercicioDetalleModal: React.FC<Props> = ({ exercise, onClose }) => {
         <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/50 to-transparent pointer-events-none z-10" />
       </div>
 
-      <div className="p-8">
+      <div className="p-8 pb-4">
         <header className="mb-6">
           <Text size="xs" weight="black" variant="gradient" className="uppercase tracking-widest mb-2 italic">
             {exercise.clase}
@@ -96,15 +112,31 @@ const EjercicioDetalleModal: React.FC<Props> = ({ exercise, onClose }) => {
         </div>
       </div>
 
-      <div className="p-8 pt-0">
-        <Button 
-          variant="primary" 
-          size="lg" 
-          className="w-full !rounded-2xl !py-5 flex items-center justify-center gap-3 shadow-purple-500/20 shadow-xl"
-        >
-          <FaDumbbell size={16} />
-          <span className="tracking-[0.2em]">INICIAR EJERCICIO</span>
-        </Button>
+      {/* Sección de botones corregida */}
+      <div className="p-8 pt-4">
+        <Text size="xs" weight="black" className="uppercase tracking-[0.2em] text-gray-500 flex items-center gap-2 mb-4">
+          COMENZAR ENTRENO
+        </Text>
+        <div className="grid grid-cols-2 gap-4">
+          <Button 
+            variant="primary" 
+            size="sm" 
+            onClick={handleConRutina}
+            className="w-full !rounded-2xl !py-5 flex items-center justify-center gap-3 shadow-purple-500/20 shadow-xl"
+          >
+            <FaDumbbell size={16} />
+            <span className="tracking-[0.2em] text-[10px]">CON RUTINA</span>
+          </Button>
+          <Button 
+            variant="primary" 
+            size="sm" 
+            onClick={handleSinRutina}
+            className="w-full !rounded-2xl !py-5 flex items-center justify-center gap-3 shadow-purple-500/20 shadow-xl"
+          >
+            <FaDumbbell size={16} />
+            <span className="tracking-[0.2em] text-[10px]">SIN RUTINA</span>
+          </Button>
+        </div>
       </div>
     </Modal>
   );

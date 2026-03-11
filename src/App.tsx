@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import MainLayout from './pages/MainLayout';
 import Landing from './pages/Landing';
 import EjerciciosView from './pages/Ejercicios/EjerciciosView';
 import RutinasView from './pages/Rutinas/RutinasView';
@@ -12,30 +13,28 @@ const AppContent = () => {
   const navigate = useNavigate();
 
   const handleStartWorkout = (rutina: any) => {
-    // 🔹 Navegamos a la ruta y pasamos la data de la rutina por el estado
     navigate('/entrenamientos', { state: { rutina } }); 
   };
 
   return (
     <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/ejercicios" element={<EjerciciosView />} />
-      
-      <Route 
-        path="/rutinas" 
-        element={<RutinasView onStartWorkout={handleStartWorkout} />} 
-      />
-      
-      <Route path="/entrenamientos" element={<SesionActiva />} />
-      
-      <Route path="/cronometro" element={<CronometroView />} />
-      <Route path="/temporizador" element={<TemporizadorView />} />
-      <Route path="/calendario" element={<CalendarioView />} />
-
-      <Route 
-        path="/crud-ejercicios" 
-        element={<CRUDEjercicios userRole="Dev" />} 
-      />
+      {/* 🚀 Todas estas rutas heredarán las sidebars del MainLayout */}
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<Landing />} />
+        <Route path="/ejercicios" element={<EjerciciosView />} />
+        <Route 
+          path="/rutinas" 
+          element={<RutinasView onStartWorkout={handleStartWorkout} />} 
+        />
+        <Route path="/entrenamientos" element={<SesionActiva />} />
+        <Route path="/cronometro" element={<CronometroView />} />
+        <Route path="/temporizador" element={<TemporizadorView />} />
+        <Route path="/calendario" element={<CalendarioView />} />
+        <Route 
+          path="/crud-ejercicios" 
+          element={<CRUDEjercicios userRole="Dev" />} 
+        />
+      </Route>
     </Routes>
   );
 };

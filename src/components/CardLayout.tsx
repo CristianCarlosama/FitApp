@@ -24,10 +24,8 @@ const CardLayout: React.FC<CardLayoutProps> = ({ children, onClick, className = 
         ${className}
       `}
     >
-      {/* Todo lo que metas dentro del componente en las vistas aparecerá aquí */}
       {children}
       
-      {/* La línea brillante del fondo que le da el toque pro */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-1 bg-gradient-to-r from-transparent via-purple-500/40 to-transparent group-hover:w-full transition-all duration-500" />
     </div>
   );
