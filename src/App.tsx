@@ -18,7 +18,6 @@ const AppContent = () => {
 
   return (
     <Routes>
-      {/* 🚀 Todas estas rutas heredarán las sidebars del MainLayout */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<Landing />} />
         <Route path="/ejercicios" element={<EjerciciosView />} />

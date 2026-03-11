@@ -7,7 +7,6 @@ import {
   FaPlay 
 } from "react-icons/fa";
 
-// ... (Tus otros imports se mantienen igual)
 import Text from "../../../components/Texts";
 import Button from "../../../components/Buttons";
 import Modal from "../../../components/Modal";
@@ -174,10 +173,8 @@ const RutinaDetalle: React.FC<RutinaDetalleProps> = ({ rutina, onClose, onStart 
           variant="primary" 
           size="lg"
           onClick={() => {
-            // 🔹 3. Usar navigate para cambiar de pantalla pasando los datos
-            navigate('/dashboard/sesion-activa', { state: { rutina } }); 
+            navigate('/entrenamientos', { state: { rutina } }); 
             
-            // Opcional: Si quieres mantener onStart para alguna lógica extra en App.tsx
             if (onStart) onStart(rutina); 
             onClose();
           }}
