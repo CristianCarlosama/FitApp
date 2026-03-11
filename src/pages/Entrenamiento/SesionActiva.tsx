@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom"; // 🔹 Hooks necesarios
+import { useNavigate, useLocation } from "react-router-dom";
 import { 
   FaTrash, FaCheck, FaDumbbell, FaTimes, FaClock, FaPlus, FaSearch
 } from "react-icons/fa";
@@ -33,15 +33,50 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
 
   const rutina = propRutina || location.state?.rutina;
   
-  const [series, setSeries] = useState<Serie[]>([]);
-  const [ejerciciosExtras, setEjerciciosExtras] = useState<any[]>([]);
-  const [segundos, setSegundos] = useState(0);
-  const [descansoActivo, setDescansoActivo] = useState(false);
-  const [segundosDescanso, setSegundosDescanso] = useState(0);
-  const [tiempoDescansoObjetivo, setTiempoDescansoObjetivo] = useState(90);
+  // --- PERSISTENCIA DE DATOS ---
+  const [series, setSeries] = useState<Serie[]>(() => {
+    const saved = localStorage.getItem('sesion_series_temp');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [ejerciciosExtras, setEjerciciosExtras] = useState<any[]>(() => {
+    const saved = localStorage.getItem('sesion_extras_temp');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [segundos, setSegundos] = useState(() => {
+    const savedStart = localStorage.getItem('sesion_inicio_timestamp');
+    if (savedStart) {
+      return Math.floor((Date.now() - parseInt(savedStart)) / 1000);
+    }
+    return 0;
+  });
+
+  const [descansoActivo, setDescansoActivo] = useState(() => 
+    localStorage.getItem('descanso_activo') === 'true'
+  );
+
+  const [segundosDescanso, setSegundosDescanso] = useState(() => {
+    const savedDescansoStart = localStorage.getItem('descanso_inicio_timestamp');
+    if (savedDescansoStart) {
+      return Math.floor((Date.now() - parseInt(savedDescansoStart)) / 1000);
+    }
+    return 0;
+  });
+
+  const [tiempoDescansoObjetivo, setTiempoDescansoObjetivo] = useState(() => {
+    const savedTarget = localStorage.getItem('descanso_meta_temp');
+    return savedTarget ? parseInt(savedTarget) : 90;
+  });
+
   const [showSelector, setShowSelector] = useState(false);
-  
-  const [fechaInicio] = useState(new Date().toISOString().slice(0, 19).replace('T', ' '));
+  const [fechaInicio] = useState(() => {
+    const savedFecha = localStorage.getItem('sesion_fecha_inicio');
+    if (savedFecha) return savedFecha;
+    const nuevaFecha = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    localStorage.setItem('sesion_fecha_inicio', nuevaFecha);
+    return nuevaFecha;
+  });
   
   const [modal, setModal] = useState({
     isOpen: false,
@@ -51,12 +86,9 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
     onConfirm: undefined as (() => void) | undefined,
   });
 
-  useEffect(() => {
-    if (!rutina) {
-      navigate("/rutinas"); 
-    }
-  }, [rutina, navigate]);
+  // --- EFECTOS ---
 
+  // Inicialización de series si es la primera vez
   useEffect(() => {
     if (rutina?.ejercicios && series.length === 0) {
       const seriesIniciales: Serie[] = [];
@@ -79,18 +111,49 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
     }
   }, [rutina]);
 
+  // Cronómetro y Temporizador basado en Timestamps reales
   useEffect(() => {
+    if (!localStorage.getItem('sesion_inicio_timestamp')) {
+      localStorage.setItem('sesion_inicio_timestamp', Date.now().toString());
+    }
+
     const interval = setInterval(() => {
-      setSegundos((s) => s + 1);
-      if (descansoActivo) setSegundosDescanso((s) => s + 1);
+      const ahora = Date.now();
+      
+      const inicio = parseInt(localStorage.getItem('sesion_inicio_timestamp') || ahora.toString());
+      setSegundos(Math.floor((ahora - inicio) / 1000));
+
+      if (localStorage.getItem('descanso_activo') === 'true') {
+        const inicioDescanso = parseInt(localStorage.getItem('descanso_inicio_timestamp') || ahora.toString());
+        setSegundosDescanso(Math.floor((ahora - inicioDescanso) / 1000));
+      }
     }, 1000);
+
     return () => clearInterval(interval);
-  }, [descansoActivo]);
+  }, []);
+
+  // Autoguardado de progreso
+  useEffect(() => {
+    localStorage.setItem('sesion_series_temp', JSON.stringify(series));
+    localStorage.setItem('sesion_extras_temp', JSON.stringify(ejerciciosExtras));
+  }, [series, ejerciciosExtras]);
+
+  // --- FUNCIONES ---
 
   const formatTime = (s: number) => {
     const mins = Math.floor(s / 60);
     const secs = s % 60;
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
+  const finalizarLimpiandoStorage = () => {
+    localStorage.removeItem('sesion_inicio_timestamp');
+    localStorage.removeItem('descanso_activo');
+    localStorage.removeItem('descanso_inicio_timestamp');
+    localStorage.removeItem('descanso_meta_temp');
+    localStorage.removeItem('sesion_series_temp');
+    localStorage.removeItem('sesion_extras_temp');
+    localStorage.removeItem('sesion_fecha_inicio');
   };
 
   const handleAddEjercicioExtra = (ejercicio: any) => {
@@ -117,6 +180,7 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
       title: "¿Abandonar sesión?",
       message: "Si sales ahora, perderás todo el progreso de este entrenamiento. ¿Estás seguro?",
       onConfirm: () => {
+        finalizarLimpiandoStorage();
         if (propOnClose) propOnClose();
         else navigate(-1);
         setModal(prev => ({ ...prev, isOpen: false }));
@@ -137,6 +201,11 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
             title: "¡Serie Completada!",
             message: `Descanso de ${tiempoDescanso}s para ${nombreEj}.`,
             onConfirm: () => {
+              const ahora = Date.now().toString();
+              localStorage.setItem('descanso_activo', 'true');
+              localStorage.setItem('descanso_inicio_timestamp', ahora);
+              localStorage.setItem('descanso_meta_temp', tiempoDescanso.toString());
+              
               setTiempoDescansoObjetivo(tiempoDescanso);
               setSegundosDescanso(0);
               setDescansoActivo(true);
@@ -159,6 +228,13 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
 
   const eliminarSerie = (ejercicioId: number, numSerie: number) => {
     setSeries(prev => prev.filter(s => !(s.ejercicio_id === ejercicioId && s.numero_serie === numSerie)));
+  };
+
+  const omitirDescanso = () => {
+    localStorage.removeItem('descanso_activo');
+    localStorage.removeItem('descanso_inicio_timestamp');
+    setDescansoActivo(false);
+    setSegundosDescanso(0);
   };
 
   const handleFinalizarEntrenamiento = async () => {
@@ -187,18 +263,21 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
 
     if (propOnFinish) {
       propOnFinish(dataFinal);
+      finalizarLimpiandoStorage();
     } else {
-      // Si se accede por ruta directamente
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/entrenamientos`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify(dataFinal)
         });
-        if (response.ok) navigate('/');
+        if (response.ok) {
+          finalizarLimpiandoStorage();
+          navigate('/');
+        }
       } catch (e) {
         console.error("Error al guardar:", e);
       }
@@ -263,9 +342,7 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
             </div>
             <div className="flex items-center gap-4">
               <span className="text-2xl font-mono font-black">{formatTime(segundosDescanso)}</span>
-              <Button variant="secondary" size="sm" onClick={() => setDescansoActivo(false)}>
-                Omitir
-              </Button>
+              <Button variant="secondary" size="sm" onClick={omitirDescanso}>Omitir</Button>
             </div>
           </div>
         )}
@@ -299,8 +376,8 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
               {series.filter(s => s.ejercicio_id === ej.id).map((serie, idx) => (
                 <div key={`${ej.id}-${idx}`} className={`grid grid-cols-5 gap-2 items-center p-2 rounded-2xl transition-all ${serie.completada ? 'bg-green-500/10 border border-green-500/20' : 'bg-white/[0.02] border border-transparent'}`}>
                   <div className="h-11 flex items-center justify-center rounded-xl bg-black/20 text-xs font-black text-gray-500">{serie.numero_serie}</div>
-                  <input type="number" placeholder="0" className="bg-[#0f111a] border border-white/5 rounded-xl h-11 text-center text-sm font-bold outline-none" onChange={(e) => actualizarDato(ej.id, serie.numero_serie, 'peso', e.target.value)} />
-                  <input type="number" defaultValue={serie.reps} className="bg-[#0f111a] border border-white/5 rounded-xl h-11 text-center text-sm font-bold outline-none" onChange={(e) => actualizarDato(ej.id, serie.numero_serie, 'reps', e.target.value)} />
+                  <input type="number" placeholder="kg" className="bg-[#0f111a] border border-white/5 rounded-xl h-11 text-center text-sm font-bold outline-none" value={serie.peso || ""} onChange={(e) => actualizarDato(ej.id, serie.numero_serie, 'peso', e.target.value)} />
+                  <input type="number" placeholder="reps" className="bg-[#0f111a] border border-white/5 rounded-xl h-11 text-center text-sm font-bold outline-none" value={serie.reps || ""} onChange={(e) => actualizarDato(ej.id, serie.numero_serie, 'reps', e.target.value)} />
                   <button onClick={() => toggleCompletarSerie(ej.id, serie.numero_serie, ej.nombre, ej)} className={`h-11 rounded-xl flex items-center justify-center transition-all ${serie.completada ? 'bg-green-500 text-white' : 'bg-white/5 text-gray-600'}`}>
                     <FaCheck size={14} />
                   </button>
@@ -312,14 +389,14 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
             </div>
           </section>
         ))}
-        <Button variant="outline" className="w-full !py-8 !rounded-[2.5rem] flex-col gap-3 border-dashed opacity-60 hover:opacity-100" onClick={() => setShowSelector(true)}>
+        <Button variant="outline" className="w-full !py-8 !rounded-[2.5rem] flex-col gap-3 border-dashed opacity-60" onClick={() => setShowSelector(true)}>
           <FaSearch size={18} className="text-purple-500" />
           <Text size="xs" weight="black" className="uppercase tracking-widest">Añadir ejercicio extra</Text>
         </Button>
       </main>
 
       <footer className="p-2 bg-[#0f111a]/80 backdrop-blur-2xl fixed bottom-0 w-full border-t border-white/5 z-40">
-        <div className="max-w-md mx-auto space-y-4">
+        <div className="max-w-md mx-auto">
           <Button variant="primary" size="lg" className="w-full !py-5 !rounded-[2rem] uppercase font-black" onClick={handleFinalizarEntrenamiento}>
             Finalizar Entrenamiento
           </Button>

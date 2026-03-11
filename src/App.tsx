@@ -17,7 +17,7 @@ const AppContent = () => {
     let timeout: ReturnType<typeof setTimeout>;
     const resetTimer = () => {
       if (timeout) clearTimeout(timeout);
-      timeout = setTimeout(handleAutoLogout, 120 * 60 * 1000);
+      timeout = setTimeout(handleAutoLogout, 60 * 60 * 1000);
     };
 
     const handleAutoLogout = () => {
