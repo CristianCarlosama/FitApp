@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import RegisterModal from './modales/RegisterModal';
 import LoginModal from './modales/LoginModal';
 
@@ -14,6 +14,8 @@ import {
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   
@@ -36,6 +38,12 @@ const Landing: React.FC = () => {
     { title: 'Fotos', view: '/fotos', icon: <FaImages className="text-pink-400" />, description: 'Sigue tu progreso.' },
     { title: 'Calendario', view: '/calendario', icon: <FaCalendarAlt className="text-gray-400" />, description: 'Sigue tu progreso.' },
   ];
+
+  useEffect(() => {
+    if (location.state?.openLogin) {
+      setShowLogin(true); // Esto abre el modal de una al llegar
+    }
+  }, [location]);
 
   return (
     <div className="p-6 md:p-10 space-y-12">

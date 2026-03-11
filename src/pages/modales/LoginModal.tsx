@@ -11,9 +11,10 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onLoginSuccess?: () => void;
+  onSwitchToRegister?: () => void;
 }
 
-const LoginModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) => {
+const LoginModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess, onSwitchToRegister }) => {
   const initialState = { login: '', password: '' };
   const [form, setForm] = useState(initialState);
   const [loading, setLoading] = useState(false);
@@ -122,13 +123,25 @@ const LoginModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) => {
               {loading ? 'Validando...' : 'Iniciar Sesión'}
             </Button>
             
-            <button 
-              type="button" 
-              onClick={onClose} 
-              className="text-gray-500 hover:text-purple-400 text-[10px] font-bold uppercase tracking-widest transition-colors py-2"
-            >
-              Olvidé mi contraseña
-            </button>
+            <div className='flex gap-4 items-center justify-center mb-6'>
+              <button 
+                type="button" 
+                onClick={() => {
+                  onClose();
+                  if (onSwitchToRegister) onSwitchToRegister(); 
+                }}
+                className="text-gray-500 hover:text-purple-400 text-[10px] font-bold uppercase tracking-widest transition-colors py-2"
+              >
+                Registrarme
+              </button>
+              <button 
+                type="button" 
+                onClick={onClose} 
+                className="text-gray-500 hover:text-purple-400 text-[10px] font-bold uppercase tracking-widest transition-colors py-2"
+              >
+                Olvidé mi contraseña
+              </button>
+            </div>
           </div>
         </form>
       </Modal>

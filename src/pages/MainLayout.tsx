@@ -164,16 +164,22 @@ const MainLayout: React.FC = () => {
       </aside>
 
       {/* MODALES DISPONIBLES EN TODA LA APP */}
-      <RegisterModal isOpen={showRegister} onClose={() => setShowRegister(false)} />
+      <RegisterModal 
+        isOpen={showRegister} 
+        onClose={() => setShowRegister(false)} 
+      />
       <LoginModal 
         isOpen={showLogin} 
         onClose={() => setShowLogin(false)} 
         onLoginSuccess={() => {
           setIsAuthenticated(true);
-          // Opcional: recargar datos o simplemente cerrar modal
           setShowLogin(false);
           window.location.reload(); 
         }} 
+        onSwitchToRegister={() => {
+          setShowLogin(false); 
+          setShowRegister(true); 
+        }}
       />
     </div>
   );

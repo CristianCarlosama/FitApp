@@ -28,7 +28,9 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 🔹 PRIORIDAD: Data de Props o Data del Router State
+  const token = localStorage.getItem('token');
+  const isAuthenticated = !!token;
+
   const rutina = propRutina || location.state?.rutina;
   
   const [series, setSeries] = useState<Serie[]>([]);
@@ -49,14 +51,12 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
     onConfirm: undefined as (() => void) | undefined,
   });
 
-  // 🛡️ Seguridad: Si no hay rutina (por ejemplo, recarga de página), vuelve a rutinas
   useEffect(() => {
     if (!rutina) {
-      navigate("/dashboard/rutinas"); 
+      navigate("/rutinas"); 
     }
   }, [rutina, navigate]);
 
-  // Lógica original de inicialización de series
   useEffect(() => {
     if (rutina?.ejercicios && series.length === 0) {
       const seriesIniciales: Serie[] = [];
@@ -188,7 +188,7 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
     if (propOnFinish) {
       propOnFinish(dataFinal);
     } else {
-      // 🔹 Lógica de guardado si se accede por ruta directamente
+      // Si se accede por ruta directamente
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/entrenamientos`, {
           method: 'POST',
@@ -198,12 +198,34 @@ const SesionActiva: React.FC<Props> = ({ rutina: propRutina, onClose: propOnClos
           },
           body: JSON.stringify(dataFinal)
         });
-        if (response.ok) navigate('/'); // O a donde prefieras
+        if (response.ok) navigate('/');
       } catch (e) {
         console.error("Error al guardar:", e);
       }
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0f111a] p-6 text-center">
+        <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-6">
+          <FaTimes size={40} />
+        </div>
+        <Text size="xl" weight="black" className="uppercase italic mb-2">Sesión cerrada</Text>
+        <Text size="sm" className="text-gray-400 mb-8 max-w-xs">
+          Tu sesión ha expirado o no has iniciado sesión. Debes entrar para poder registrar tus entrenamientos.
+        </Text>
+        <div className="flex gap-4">
+          <Button variant="primary" className="px-10 !rounded-full" onClick={() => navigate('/')}>
+            Inicio
+          </Button>
+          <Button variant="primary" className="px-10 !rounded-full" onClick={() => navigate('/', { state: { openLogin: true } })}>
+            Entrar
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (!rutina) return null;
 
